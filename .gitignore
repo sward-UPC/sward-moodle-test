@@ -1,0 +1,14 @@
+# Agentes / herramientas locales
+.claude/
+CLAUDE.md
+
+# Sistema operativo
+.DS_Store
+
+# Configuracion local del seed (puede contener el token)
+seed/.env
+
+# Volumenes / datos locales si se montan en bind-mounts
+data/
+volumes/
+*.log
