@@ -1,0 +1,82 @@
+# Entorno Moodle dockerizado para pruebas del MVP de SWARD.
+# Valida la integracion del microservicio sward-ms-integracion-lms
+# contra una instancia REAL de Moodle (no el mock).
+#
+# Basado en las imagenes oficiales de Bitnami (simplifican el bootstrap:
+# instalan Moodle, crean la BD y el usuario admin automaticamente).
+#
+# NOTA: Estas credenciales son SOLO para un entorno de prueba local.
+# Nunca usar estos valores en produccion.
+
+services:
+  mariadb:
+    image: docker.io/bitnami/mariadb:11.4
+    container_name: sward-moodle-mariadb
+    environment:
+      - ALLOW_EMPTY_PASSWORD=no
+      - MARIADB_USER=bn_moodle
+      - MARIADB_PASSWORD=bn_moodle_pass
+      - MARIADB_DATABASE=bitnami_moodle
+      - MARIADB_ROOT_PASSWORD=root_pass
+      - MARIADB_CHARACTER_SET=utf8mb4
+      - MARIADB_COLLATE=utf8mb4_unicode_ci
+    volumes:
+      - mariadb_data:/bitnami/mariadb
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 15s
+      timeout: 10s
+      retries: 20
+      start_period: 60s
+    restart: unless-stopped
+
+  moodle:
+    # Moodle 4.5 LTS (soporte extendido). Fija la version para reproducibilidad.
+    image: docker.io/bitnami/moodle:4.5
+    container_name: sward-moodle-app
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    ports:
+      - "8090:8080"
+    environment:
+      # --- Conexion a la base de datos ---
+      - MOODLE_DATABASE_TYPE=mariadb
+      - MOODLE_DATABASE_HOST=mariadb
+      - MOODLE_DATABASE_PORT_NUMBER=3306
+      - MOODLE_DATABASE_USER=bn_moodle
+      - MOODLE_DATABASE_PASSWORD=bn_moodle_pass
+      - MOODLE_DATABASE_NAME=bitnami_moodle
+      # --- Cuenta de administrador (credenciales de prueba) ---
+      - MOODLE_USERNAME=admin
+      - MOODLE_PASSWORD=Sward2026!
+      - MOODLE_EMAIL=admin@sward.test
+      - MOODLE_SITE_NAME=SWARD Moodle Test
+      # --- URL externa: debe coincidir con el puerto publicado (8090) ---
+      # Esto evita redirecciones rotas al acceder por http://localhost:8090
+      - MOODLE_HOST=localhost:8090
+      - MOODLE_REVERSEPROXY=no
+      - MOODLE_SSLPROXY=no
+      # Saltar el correo de bienvenida del instalador
+      - MOODLE_SKIP_BOOTSTRAP=no
+      # Habilita la subida de archivos / wwwroot correcto
+      - BITNAMI_DEBUG=false
+    volumes:
+      - moodle_data:/bitnami/moodle
+      - moodledata_data:/bitnami/moodledata
+    healthcheck:
+      # Moodle responde 200/303 en la raiz cuando termina el bootstrap.
+      test: ["CMD", "curl", "-fsS", "-o", "/dev/null", "http://localhost:8080/login/index.php"]
+      interval: 30s
+      timeout: 15s
+      retries: 30
+      start_period: 300s
+    restart: unless-stopped
+
+volumes:
+  mariadb_data:
+    driver: local
+  moodle_data:
+    driver: local
+  moodledata_data:
+    driver: local
