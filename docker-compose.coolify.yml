@@ -60,8 +60,8 @@ services:
       MOODLE_EMAIL: ${MOODLE_EMAIL:-admin@sward.test}
       # URL pública HTTPS + proxy headers (requerido por Traefik/Coolify)
       SITE_URL: ${SITE_URL:-https://moodle.ryzeon.dev}
-      SSLPROXY: "true"
-      REVERSEPROXY: "false"
+      SSLPROXY: "false"
+      REVERSEPROXY: "true"
     volumes:
       - moodledata_data:/var/www/moodledata
       - moodlehtml_data:/var/www/html
