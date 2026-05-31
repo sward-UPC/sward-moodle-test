@@ -58,8 +58,8 @@ services:
       MOODLE_USERNAME: ${MOODLE_ADMIN:-admin}
       MOODLE_PASSWORD: ${MOODLE_PASSWORD:-Sward2026Change}
       MOODLE_EMAIL: ${MOODLE_EMAIL:-admin@sward.test}
-      # URL (Coolify inyecta automáticamente $COOLIFY_DOMAIN_NAME)
-      SITE_URL: ${SITE_URL:-http://localhost:8090}
+      # URL (debe coincidir con dominio de Coolify)
+      SITE_URL: https://moodle.ryzeon.dev
     volumes:
       - moodledata_data:/var/www/moodledata
       - moodlehtml_data:/var/www/html
