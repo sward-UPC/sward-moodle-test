@@ -1,0 +1,130 @@
+{
+  "$schema": "https://coolify.io/schema/coolify.json",
+  "name": "SWARD Moodle Test",
+  "description": "Instancia Moodle 4.5 LTS para pruebas de integración SWARD (sward-ms-integracion-lms)",
+  "version": "1.0.0",
+  "services": [
+    {
+      "id": "mariadb",
+      "name": "MariaDB 11.4",
+      "type": "database",
+      "image": "docker.io/library/mariadb:11.4",
+      "description": "Base de datos para Moodle",
+      "ports": [
+        {
+          "published": 3306,
+          "target": 3306,
+          "protocol": "tcp"
+        }
+      ],
+      "healthcheck": {
+        "test": ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"],
+        "interval": 15,
+        "timeout": 10,
+        "retries": 20,
+        "start_period": 60
+      },
+      "environment": {
+        "MARIADB_DATABASE": "moodle",
+        "MARIADB_USER": "moodle",
+        "MARIADB_PASSWORD": "moodle_pass_change_me",
+        "MARIADB_ROOT_PASSWORD": "root_pass_change_me"
+      },
+      "volumes": [
+        {
+          "source": "mariadb_data",
+          "destination": "/var/lib/mysql",
+          "type": "named"
+        }
+      ]
+    },
+    {
+      "id": "moodle",
+      "name": "Moodle 4.5 LTS",
+      "type": "application",
+      "image": "docker.io/erseco/alpine-moodle:v4.5.11",
+      "description": "Moodle LMS para pruebas de integración SWARD",
+      "dependsOn": [
+        "mariadb"
+      ],
+      "ports": [
+        {
+          "published": 8090,
+          "target": 8080,
+          "protocol": "http"
+        }
+      ],
+      "healthcheck": {
+        "test": ["CMD-SHELL", "wget -q -O /dev/null http://localhost:8080/login/index.php || exit 1"],
+        "interval": 30,
+        "timeout": 15,
+        "retries": 30,
+        "start_period": 300
+      },
+      "environment": {
+        "DB_TYPE": "mariadb",
+        "DB_HOST": "mariadb",
+        "DB_PORT": "3306",
+        "DB_NAME": "moodle",
+        "DB_USER": "moodle",
+        "DB_PASS": "moodle_pass_change_me",
+        "MOODLE_USERNAME": "admin",
+        "MOODLE_PASSWORD": "Sward2026!_CHANGE_ME",
+        "MOODLE_EMAIL": "admin@sward.test",
+        "MOODLE_SITENAME": "SWARD Moodle Test",
+        "SITE_URL": "https://{COOLIFY_DOMAIN_NAME}"
+      },
+      "volumes": [
+        {
+          "source": "moodledata_data",
+          "destination": "/var/www/moodledata",
+          "type": "named"
+        },
+        {
+          "source": "moodlehtml_data",
+          "destination": "/var/www/html",
+          "type": "named"
+        }
+      ]
+    }
+  ],
+  "volumes": [
+    {
+      "name": "mariadb_data",
+      "driver": "local"
+    },
+    {
+      "name": "moodledata_data",
+      "driver": "local"
+    },
+    {
+      "name": "moodlehtml_data",
+      "driver": "local"
+    }
+  ],
+  "documentation": {
+    "title": "SWARD Moodle Test Setup",
+    "sections": [
+      {
+        "title": "Credenciales de Administrador",
+        "content": "**Usuario:** admin\n**Contraseña:** Sward2026!_CHANGE_ME (cambiar en producción)\n**Email:** admin@sward.test"
+      },
+      {
+        "title": "URLs",
+        "content": "- **Moodle:** http://localhost:8090 (local) o https://{COOLIFY_DOMAIN_NAME} (Coolify)\n- **DB MariaDB:** mariadb:3306"
+      },
+      {
+        "title": "Integración SWARD",
+        "content": "Este Moodle se conecta con `sward-ms-integracion-lms` (microservicio de integración LMS)\n\n**Endpoints consumidos:**\n- `GET /lms/courses` → lista cursos desde Moodle\n- `GET /lms/activities` → lista actividades\n- `GET /lms/grades` → lista calificaciones\n- `GET /lms/interactions` → lista interacciones\n- `POST /lms/sync` → sincronización manual"
+      },
+      {
+        "title": "Cambios de Contraseña",
+        "content": "1. Editar variable de entorno `MOODLE_PASSWORD`\n2. Reiniciar servicio de Moodle\n3. Acceder con nueva contraseña"
+      },
+      {
+        "title": "Persistencia de Datos",
+        "content": "- **mariadb_data:** Datos de la base de datos MariaDB\n- **moodledata_data:** Datos de cursos, usuarios, archivos\n- **moodlehtml_data:** Código PHP de Moodle"
+      }
+    ]
+  }
+}
