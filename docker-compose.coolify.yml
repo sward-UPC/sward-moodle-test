@@ -33,8 +33,6 @@ services:
       retries: 20
       start_period: 60s
     restart: unless-stopped
-    networks:
-      - sward-network
     labels:
       # Metadatos para Coolify (opcional, facilita auto-discovery)
       coolify.service: "mariadb"
@@ -56,11 +54,10 @@ services:
       DB_NAME: ${MARIADB_DATABASE:-moodle}
       DB_USER: ${MARIADB_USER:-moodle}
       DB_PASS: ${MARIADB_PASSWORD:-moodle_pass_change_me}
-      # Admin
+      # Admin (erseco/alpine-moodle usa MOODLE_USERNAME, MOODLE_PASSWORD, MOODLE_EMAIL)
       MOODLE_USERNAME: ${MOODLE_ADMIN:-admin}
-      MOODLE_PASSWORD: ${MOODLE_PASSWORD:-Sward2026!}
+      MOODLE_PASSWORD: ${MOODLE_PASSWORD:-Sward2026Change}
       MOODLE_EMAIL: ${MOODLE_EMAIL:-admin@sward.test}
-      MOODLE_SITENAME: ${MOODLE_SITENAME:-SWARD Moodle Test}
       # URL (Coolify inyecta automáticamente $COOLIFY_DOMAIN_NAME)
       SITE_URL: ${SITE_URL:-http://localhost:8090}
     volumes:
@@ -73,8 +70,6 @@ services:
       retries: 30
       start_period: 300s
     restart: unless-stopped
-    networks:
-      - sward-network
     labels:
       coolify.service: "moodle"
       coolify.description: "Moodle LMS para pruebas de integración SWARD"
@@ -87,7 +82,3 @@ volumes:
     driver: local
   moodlehtml_data:
     driver: local
-
-networks:
-  sward-network:
-    driver: bridge
