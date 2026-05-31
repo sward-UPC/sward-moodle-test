@@ -2,26 +2,26 @@
 # Valida la integracion del microservicio sward-ms-integracion-lms
 # contra una instancia REAL de Moodle (no el mock).
 #
-# Basado en las imagenes oficiales de Bitnami (simplifican el bootstrap:
-# instalan Moodle, crean la BD y el usuario admin automaticamente).
+# Imagen: erseco/alpine-moodle (comunidad, mantenida activamente).
+# Bitnami retiro sus imagenes gratuitas de Docker Hub en 2025.
 #
 # NOTA: Estas credenciales son SOLO para un entorno de prueba local.
 # Nunca usar estos valores en produccion.
 
 services:
   mariadb:
-    image: docker.io/bitnami/mariadb:11.4
+    image: docker.io/library/mariadb:11.4
     container_name: sward-moodle-mariadb
     environment:
-      - ALLOW_EMPTY_PASSWORD=no
-      - MARIADB_USER=bn_moodle
-      - MARIADB_PASSWORD=bn_moodle_pass
-      - MARIADB_DATABASE=bitnami_moodle
+      - MARIADB_DATABASE=moodle
+      - MARIADB_USER=moodle
+      - MARIADB_PASSWORD=moodle_pass
       - MARIADB_ROOT_PASSWORD=root_pass
-      - MARIADB_CHARACTER_SET=utf8mb4
-      - MARIADB_COLLATE=utf8mb4_unicode_ci
+    command:
+      - "--character-set-server=utf8mb4"
+      - "--collation-server=utf8mb4_unicode_ci"
     volumes:
-      - mariadb_data:/bitnami/mariadb
+      - mariadb_data:/var/lib/mysql
     healthcheck:
       test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
       interval: 15s
@@ -31,8 +31,9 @@ services:
     restart: unless-stopped
 
   moodle:
-    # Moodle 4.5 LTS (soporte extendido). Fija la version para reproducibilidad.
-    image: docker.io/bitnami/moodle:4.5
+    # Moodle 4.5 LTS (soporte extendido). Version fija para reproducibilidad.
+    # Tags disponibles: v4.5.11, v5.0.x, v5.1.x, v5.2.0, latest.
+    image: docker.io/erseco/alpine-moodle:v4.5.11
     container_name: sward-moodle-app
     depends_on:
       mariadb:
@@ -41,32 +42,25 @@ services:
       - "8090:8080"
     environment:
       # --- Conexion a la base de datos ---
-      - MOODLE_DATABASE_TYPE=mariadb
-      - MOODLE_DATABASE_HOST=mariadb
-      - MOODLE_DATABASE_PORT_NUMBER=3306
-      - MOODLE_DATABASE_USER=bn_moodle
-      - MOODLE_DATABASE_PASSWORD=bn_moodle_pass
-      - MOODLE_DATABASE_NAME=bitnami_moodle
+      - DB_TYPE=mariadb
+      - DB_HOST=mariadb
+      - DB_PORT=3306
+      - DB_NAME=moodle
+      - DB_USER=moodle
+      - DB_PASS=moodle_pass
       # --- Cuenta de administrador (credenciales de prueba) ---
       - MOODLE_USERNAME=admin
       - MOODLE_PASSWORD=Sward2026!
       - MOODLE_EMAIL=admin@sward.test
-      - MOODLE_SITE_NAME=SWARD Moodle Test
+      - MOODLE_SITENAME=SWARD Moodle Test
       # --- URL externa: debe coincidir con el puerto publicado (8090) ---
-      # Esto evita redirecciones rotas al acceder por http://localhost:8090
-      - MOODLE_HOST=localhost:8090
-      - MOODLE_REVERSEPROXY=no
-      - MOODLE_SSLPROXY=no
-      # Saltar el correo de bienvenida del instalador
-      - MOODLE_SKIP_BOOTSTRAP=no
-      # Habilita la subida de archivos / wwwroot correcto
-      - BITNAMI_DEBUG=false
+      - SITE_URL=http://localhost:8090
     volumes:
-      - moodle_data:/bitnami/moodle
-      - moodledata_data:/bitnami/moodledata
+      - moodledata_data:/var/www/moodledata
+      - moodlehtml_data:/var/www/html
     healthcheck:
-      # Moodle responde 200/303 en la raiz cuando termina el bootstrap.
-      test: ["CMD", "curl", "-fsS", "-o", "/dev/null", "http://localhost:8080/login/index.php"]
+      # La imagen alpine trae wget; no asume curl.
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://localhost:8080/login/index.php || exit 1"]
       interval: 30s
       timeout: 15s
       retries: 30
@@ -76,7 +70,7 @@ services:
 volumes:
   mariadb_data:
     driver: local
-  moodle_data:
-    driver: local
   moodledata_data:
+    driver: local
+  moodlehtml_data:
     driver: local
