@@ -1,0 +1,22 @@
+{
+  "timestamp": "2026-05-31T18:25:18-05:00",
+  "courses": [[1;33m⟳[0m Curso 'SWARD-AED' ya existe (id=2)
+2,[1;33m⟳[0m Curso 'SWARD-BD' ya existe (id=3)
+3,[1;33m⟳[0m Curso 'SWARD-IS' ya existe (id=4)
+4,[1;33m⟳[0m Curso 'SWARD-DW' ya existe (id=5)
+5],
+  "teachers": [[0;32m✓[0m Usuario 'docente01' creado (id=),[0;32m✓[0m Usuario 'docente02' creado (id=),[0;32m✓[0m Usuario 'docente03' creado (id=),[0;32m✓[0m Usuario 'docente04' creado (id=22)
+22],
+  "students": [[0;32m✓[0m Usuario 'estudiante01' creado (id=),[0;32m✓[0m Usuario 'estudiante02' creado (id=),[0;32m✓[0m Usuario 'estudiante03' creado (id=),[0;32m✓[0m Usuario 'estudiante04' creado (id=),[0;32m✓[0m Usuario 'estudiante05' creado (id=),[0;32m✓[0m Usuario 'estudiante06' creado (id=),[0;32m✓[0m Usuario 'estudiante07' creado (id=),[0;32m✓[0m Usuario 'estudiante08' creado (id=),[0;32m✓[0m Usuario 'estudiante09' creado (id=),[0;32m✓[0m Usuario 'estudiante10' creado (id=),[0;32m✓[0m Usuario 'estudiante11' creado (id=),[0;32m✓[0m Usuario 'estudiante12' creado (id=),[0;32m✓[0m Usuario 'estudiante13' creado (id=),[0;32m✓[0m Usuario 'estudiante14' creado (id=),[0;32m✓[0m Usuario 'estudiante15' creado (id=),[0;32m✓[0m Usuario 'estudiante16' creado (id=23)
+23,[0;32m✓[0m Usuario 'estudiante17' creado (id=24)
+24,[0;32m✓[0m Usuario 'estudiante18' creado (id=25)
+25,[0;32m✓[0m Usuario 'estudiante19' creado (id=26)
+26,[0;32m✓[0m Usuario 'estudiante20' creado (id=27)
+27,[0;32m✓[0m Usuario 'estudiante21' creado (id=28)
+28,[0;32m✓[0m Usuario 'estudiante22' creado (id=29)
+29,[0;32m✓[0m Usuario 'estudiante23' creado (id=30)
+30,[0;32m✓[0m Usuario 'estudiante24' creado (id=31)
+31,[0;32m✓[0m Usuario 'estudiante25' creado (id=32)
+32],
+  "moodle_url": "https://moodle-l6vk0cpmijcbceqcyttjaqqy.coolify.ryzeon.me"
+}

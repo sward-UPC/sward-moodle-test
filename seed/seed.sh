@@ -198,9 +198,7 @@ create_user() {
     "users[0][password]=Sward2026!" \
     "users[0][firstname]=${first}" \
     "users[0][lastname]=${last}" \
-    "users[0][email]=${email}" \
-    "users[0][auth]=manual" \
-    "users[0][lang]=es" | jq -r '.[0].id')
+    "users[0][email]=${email}" | jq -r '.[0].id')
   echo -e "${GREEN}✓${NC} Usuario '$username' creado (id=$uid)"
   echo "$uid"
 }
