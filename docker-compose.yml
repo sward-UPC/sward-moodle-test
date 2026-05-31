@@ -52,7 +52,7 @@ services:
       - MOODLE_USERNAME=admin
       - MOODLE_PASSWORD=Sward2026!
       - MOODLE_EMAIL=admin@sward.test
-      - MOODLE_SITENAME=SWARD Moodle Test
+      - MOODLE_SITENAME=SWARD-Moodle-Test
       # --- URL externa: debe coincidir con el puerto publicado (8090) ---
       - SITE_URL=http://localhost:8090
     volumes:
