@@ -86,11 +86,24 @@ function make_mod($base) {
     return $m;
 }
 
+function safe_create($m, $label) {
+    try {
+        create_module($m);
+        echo "    ✓ $label\n";
+    } catch (\moodle_exception $e) {
+        echo "    ✗ ERROR [$label]: code={$e->errorcode} attr={$e->a} msg={$e->getMessage()}\n";
+        $fields = array_keys((array)$m);
+        echo "      Campos: " . implode(', ', $fields) . "\n";
+    } catch (\Exception $e) {
+        echo "    ✗ ERROR [$label]: " . $e->getMessage() . "\n";
+    }
+}
+
 function add_page($courseid, $section, $name, $content) {
     global $CFG;
     require_once($CFG->dirroot . '/mod/page/lib.php');
     if (mod_exists($courseid, 'page', $name)) {
-        echo "    ⟳ Ya existe página: $name\n"; return;
+        echo "    ⟳ Ya existe: $name\n"; return;
     }
     $m = make_mod([
         'modulename'     => 'page',
@@ -109,8 +122,7 @@ function add_page($courseid, $section, $name, $content) {
         'revision'       => 1,
         'timemodified'   => time(),
     ]);
-    create_module($m);
-    echo "    ✓ Página: $name\n";
+    safe_create($m, "Página: $name");
 }
 
 function add_url($courseid, $section, $name, $url, $intro = '') {
@@ -131,8 +143,7 @@ function add_url($courseid, $section, $name, $url, $intro = '') {
         'displayoptions' => serialize([]),
         'timemodified'   => time(),
     ]);
-    create_module($m);
-    echo "    ✓ URL: $name\n";
+    safe_create($m, "URL: $name");
 }
 
 function add_assign($courseid, $section, $name, $intro, $weeks_due = 2) {
@@ -163,8 +174,7 @@ function add_assign($courseid, $section, $name, $intro, $weeks_due = 2) {
         'assignsubmission_file_maxsizebytes'  => 10 * 1024 * 1024,
         'assignfeedback_comments_enabled'     => 1,
     ]);
-    create_module($m);
-    echo "    ✓ Tarea: $name\n";
+    safe_create($m, "Tarea: $name");
 }
 
 function add_forum($courseid, $section, $name, $intro) {
@@ -188,8 +198,7 @@ function add_forum($courseid, $section, $name, $intro) {
         'maxattachments'  => 9,
         'timemodified'    => time(),
     ]);
-    create_module($m);
-    echo "    ✓ Foro: $name\n";
+    safe_create($m, "Foro: $name");
 }
 
 function add_quiz($courseid, $section, $name, $intro, $weeks_due = 3) {
@@ -228,7 +237,7 @@ function add_quiz($courseid, $section, $name, $intro, $weeks_due = 3) {
         'showblocks'         => 0,
         'timemodified'       => time(),
     ]);
-    create_module($m);
+    safe_create($m, "Quiz: $name");
     echo "    ✓ Quiz: $name\n";
 }
 
