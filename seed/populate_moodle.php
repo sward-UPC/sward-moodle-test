@@ -70,19 +70,23 @@ function mod_exists($courseid, $modname, $name) {
 }
 
 function make_mod($base) {
+    $intro = $base['intro'] ?? '';
     $m = (object) array_merge([
-        'visible'               => 1,
-        'visibleoncoursepage'   => 1,
-        'intro'                 => '',
-        'introformat'           => FORMAT_HTML,
-        'cmidnumber'            => '',
-        'groupmode'             => 0,
-        'groupingid'            => 0,
-        'availability'          => null,
-        'completionview'        => 0,
-        'completionexpected'    => 0,
-        'showdescription'       => 0,
+        'visible'             => 1,
+        'visibleoncoursepage' => 1,
+        'intro'               => $intro,
+        'introformat'         => FORMAT_HTML,
+        'introeditor'         => ['text' => $intro, 'format' => FORMAT_HTML, 'itemid' => 0],
+        'cmidnumber'          => '',
+        'groupmode'           => 0,
+        'groupingid'          => 0,
+        'availability'        => null,
+        'completionview'      => 0,
+        'completionexpected'  => 0,
+        'showdescription'     => 0,
     ], (array)$base);
+    // Sync introeditor with intro in case base overrides it
+    $m->introeditor = ['text' => $m->intro, 'format' => FORMAT_HTML, 'itemid' => 0];
     return $m;
 }
 
