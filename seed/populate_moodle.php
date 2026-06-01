@@ -204,7 +204,7 @@ function add_quiz($courseid, $section, $name, $intro, $weeks_due = 3) {
 
 // ── Contenido HTML ──────────────────────────────────
 
-$aed_s1_page = <<<HTML
+$aed_s1_page = <<<'HTML'
 <h2>Introducción a los Algoritmos</h2>
 <h3>¿Qué es un Algoritmo?</h3>
 <p>Un <strong>algoritmo</strong> es una secuencia finita, bien definida y efectiva de instrucciones para resolver un problema. Características esenciales:</p>
@@ -264,7 +264,7 @@ def busqueda_lineal(arr, objetivo):
 </ul>
 HTML;
 
-$aed_s2_page = <<<HTML
+$aed_s2_page = <<<'HTML'
 <h2>Complejidad Computacional — Notación Big O</h2>
 <h3>¿Por qué medir complejidad?</h3>
 <p>Para n=1,000,000 elementos, la diferencia entre O(n) y O(n²) es la diferencia entre <em>1 segundo</em> y <em>11 días</em> de ejecución.</p>
@@ -302,7 +302,7 @@ def busqueda_binaria(arr, objetivo):    # arr ordenado
 </pre>
 HTML;
 
-$aed_s3_page = <<<HTML
+$aed_s3_page = <<<'HTML'
 <h2>Estructuras de Datos Lineales</h2>
 <h3>Arrays vs Listas Enlazadas</h3>
 <table border="1" cellpadding="8" style="border-collapse:collapse;width:100%;">
@@ -351,7 +351,7 @@ class Cola:
 </ul>
 HTML;
 
-$aed_s4_page = <<<HTML
+$aed_s4_page = <<<'HTML'
 <h2>Árboles Binarios y BST</h2>
 <h3>Árbol Binario de Búsqueda (BST)</h3>
 <p>Para cada nodo N: todos los valores en el subárbol izquierdo son <strong>&lt; N</strong>, y todos los del derecho son <strong>&gt; N</strong>.</p>
@@ -398,7 +398,7 @@ class BST:
 <p>BST auto-balanceado. <strong>Factor de balance</strong> = altura(izq) − altura(der) ∈ {−1, 0, 1}. Garantiza O(log n) siempre, incluso en el peor caso. Usa 4 tipos de rotaciones para mantener el balance tras cada inserción o eliminación.</p>
 HTML;
 
-$aed_s5_page = <<<HTML
+$aed_s5_page = <<<'HTML'
 <h2>Algoritmos de Ordenamiento Comparados</h2>
 <table border="1" cellpadding="8" style="border-collapse:collapse;width:100%;">
   <tr style="background:#e8f4f8;"><th>Algoritmo</th><th>Mejor</th><th>Promedio</th><th>Peor</th><th>Espacio</th><th>Estable</th></tr>
@@ -434,7 +434,7 @@ def merge(izq, der):
 </ul>
 HTML;
 
-$bd_s1_page = <<<HTML
+$bd_s1_page = <<<'HTML'
 <h2>Fundamentos de Bases de Datos</h2>
 <h3>¿Qué es una Base de Datos?</h3>
 <p>Una <strong>base de datos</strong> es una colección organizada de datos estructurados, almacenada y accedida electrónicamente. Un <strong>SGBD</strong> (Sistema Gestor de Bases de Datos) gestiona: almacenamiento, recuperación, concurrencia, seguridad y recuperación ante fallos.</p>
@@ -457,7 +457,7 @@ $bd_s1_page = <<<HTML
 </table>
 HTML;
 
-$bd_s3_page = <<<HTML
+$bd_s3_page = <<<'HTML'
 <h2>SQL Básico — DDL y DML</h2>
 <h3>DDL — Data Definition Language</h3>
 <pre style="background:#f4f4f4;padding:12px;border-radius:4px;">
@@ -531,7 +531,7 @@ ORDER  BY cursos_matriculados DESC;
 </pre>
 HTML;
 
-$is_s1_page = <<<HTML
+$is_s1_page = <<<'HTML'
 <h2>Introducción a la Ingeniería de Software</h2>
 <h3>¿Qué es la Ingeniería de Software?</h3>
 <p>La <strong>Ingeniería de Software</strong> es la aplicación de principios de ingeniería para desarrollar software de manera <em>sistemática</em>, <em>disciplinada</em> y <em>cuantificable</em> (IEEE 610.12). Su objetivo: producir software de alta calidad, a tiempo y dentro del presupuesto.</p>
@@ -562,7 +562,7 @@ $is_s1_page = <<<HTML
 </ul>
 HTML;
 
-$is_s3_page = <<<HTML
+$is_s3_page = <<<'HTML'
 <h2>Requerimientos de Software</h2>
 <h3>Tipos de Requerimientos</h3>
 <p><strong>Requerimientos Funcionales (RF):</strong> Describen QUÉ debe hacer el sistema.</p>
@@ -605,7 +605,7 @@ Definition of Done:
 </pre>
 HTML;
 
-$dw_s1_page = <<<HTML
+$dw_s1_page = <<<'HTML'
 <h2>HTML5 Semántico — Fundamentos</h2>
 <h3>¿Por qué semántica?</h3>
 <p>El HTML semántico mejora: accesibilidad (lectores de pantalla), SEO (motores de búsqueda), mantenibilidad del código y la colaboración en equipos.</p>
@@ -677,7 +677,7 @@ $dw_s1_page = <<<HTML
 </pre>
 HTML;
 
-$dw_s3_page = <<<HTML
+$dw_s3_page = <<<'HTML'
 <h2>JavaScript ES6+ — Sintaxis Moderna</h2>
 <h3>Variables y Destructuring</h3>
 <pre style="background:#f4f4f4;padding:12px;border-radius:4px;">
