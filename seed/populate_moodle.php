@@ -91,14 +91,16 @@ function make_mod($base) {
 }
 
 function safe_create($m, $label) {
+    global $DB;
     try {
         create_module($m);
         echo "    ✓ $label\n";
     } catch (\moodle_exception $e) {
+        // Limpiar transacción colgada
+        try { $DB->force_transaction_rollback(); } catch (\Exception $ignored) {}
         echo "    ✗ ERROR [$label]: code={$e->errorcode} attr={$e->a} msg={$e->getMessage()}\n";
-        $fields = array_keys((array)$m);
-        echo "      Campos: " . implode(', ', $fields) . "\n";
     } catch (\Exception $e) {
+        try { $DB->force_transaction_rollback(); } catch (\Exception $ignored) {}
         echo "    ✗ ERROR [$label]: " . $e->getMessage() . "\n";
     }
 }
@@ -162,21 +164,41 @@ function add_assign($courseid, $section, $name, $intro, $weeks_due = 2) {
         'section'                             => $section,
         'name'                                => $name,
         'intro'                               => $intro,
-        'duedate'                             => time() + ($weeks_due * 7 * 24 * 3600),
-        'allowsubmissionsfromdate'            => 0,
-        'grade'                               => 20,
+        'introformat'                         => FORMAT_HTML,
+        'alwaysshowdescription'               => 1,
+        'nosubmissions'                       => 0,
         'submissiondrafts'                    => 0,
-        'requiresubmissionstatement'          => 0,
         'sendnotifications'                   => 0,
         'sendlatenotifications'               => 0,
+        'sendstudentnotifications'            => 1,
+        'duedate'                             => time() + ($weeks_due * 7 * 24 * 3600),
+        'cutoffdate'                          => 0,
+        'gradingduedate'                      => 0,
+        'allowsubmissionsfromdate'            => 0,
+        'grade'                               => 20,
+        'timemodified'                        => time(),
+        'requiresubmissionstatement'          => 0,
+        'completionsubmit'                    => 0,
         'teamsubmission'                      => 0,
         'requireallteammemberssubmit'         => 0,
+        'teamsubmissiongroupingid'            => 0,
         'blindmarking'                        => 0,
+        'hidegrader'                          => 0,
+        'revealidentities'                    => 0,
+        'attemptreopenmethod'                 => 'none',
+        'maxattempts'                         => -1,
+        'markingworkflow'                     => 0,
+        'markingallocation'                   => 0,
         'assignsubmission_onlinetext_enabled' => 1,
+        'assignsubmission_onlinetext_wordlimit' => 0,
+        'assignsubmission_onlinetext_wordlimitenabled' => 0,
         'assignsubmission_file_enabled'       => 1,
         'assignsubmission_file_maxfiles'      => 5,
         'assignsubmission_file_maxsizebytes'  => 10 * 1024 * 1024,
         'assignfeedback_comments_enabled'     => 1,
+        'assignfeedback_comments_commentinline' => 0,
+        'assignfeedback_editpdf_enabled'      => 0,
+        'assignfeedback_file_enabled'         => 0,
     ]);
     safe_create($m, "Tarea: $name");
 }
