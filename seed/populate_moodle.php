@@ -21,11 +21,17 @@ if (!$moodle_root) {
 
 require("$moodle_root/config.php");
 require_once($CFG->dirroot . '/course/lib.php');
+require_once($CFG->dirroot . '/course/modlib.php');
 require_once($CFG->dirroot . '/lib/modinfolib.php');
+
+// CLI necesita usuario admin activo para crear módulos
+$admin = get_admin();
+\core\session\manager::set_user($admin);
 
 echo "\n╔══════════════════════════════════════════════╗\n";
 echo "║  SWARD — Carga de contenido académico       ║\n";
 echo "╚══════════════════════════════════════════════╝\n\n";
+echo "Usuario activo: " . $admin->username . "\n\n";
 
 // ── Helpers ────────────────────────────────────────
 
@@ -87,15 +93,21 @@ function add_page($courseid, $section, $name, $content) {
         echo "    ⟳ Ya existe página: $name\n"; return;
     }
     $m = make_mod([
-        'modulename'    => 'page',
-        'course'        => $courseid,
-        'section'       => $section,
-        'name'          => $name,
-        'content'       => $content,
-        'contentformat' => FORMAT_HTML,
-        'display'       => 0,
-        'printheading'  => 1,
-        'printhastoc'   => 0,
+        'modulename'     => 'page',
+        'course'         => $courseid,
+        'section'        => $section,
+        'name'           => $name,
+        'intro'          => '',
+        'introformat'    => FORMAT_HTML,
+        'content'        => $content,
+        'contentformat'  => FORMAT_HTML,
+        'display'        => 0,
+        'displayoptions' => serialize([]),
+        'printheading'   => 1,
+        'printhastoc'    => 0,
+        'legacyfiles'    => 0,
+        'revision'       => 1,
+        'timemodified'   => time(),
     ]);
     create_module($m);
     echo "    ✓ Página: $name\n";
@@ -108,13 +120,16 @@ function add_url($courseid, $section, $name, $url, $intro = '') {
         echo "    ⟳ Ya existe URL: $name\n"; return;
     }
     $m = make_mod([
-        'modulename'  => 'url',
-        'course'      => $courseid,
-        'section'     => $section,
-        'name'        => $name,
-        'externalurl' => $url,
-        'intro'       => $intro,
-        'display'     => 0,
+        'modulename'     => 'url',
+        'course'         => $courseid,
+        'section'        => $section,
+        'name'           => $name,
+        'intro'          => $intro,
+        'introformat'    => FORMAT_HTML,
+        'externalurl'    => $url,
+        'display'        => 0,
+        'displayoptions' => serialize([]),
+        'timemodified'   => time(),
     ]);
     create_module($m);
     echo "    ✓ URL: $name\n";
@@ -159,13 +174,19 @@ function add_forum($courseid, $section, $name, $intro) {
         echo "    ⟳ Ya existe foro: $name\n"; return;
     }
     $m = make_mod([
-        'modulename'  => 'forum',
-        'course'      => $courseid,
-        'section'     => $section,
-        'name'        => $name,
-        'intro'       => $intro,
-        'type'        => 'general',
-        'forcesubscribe' => 0,
+        'modulename'      => 'forum',
+        'course'          => $courseid,
+        'section'         => $section,
+        'name'            => $name,
+        'intro'           => $intro,
+        'introformat'     => FORMAT_HTML,
+        'type'            => 'general',
+        'forcesubscribe'  => 0,
+        'assessed'        => 0,
+        'scale'           => 0,
+        'maxbytes'        => 0,
+        'maxattachments'  => 9,
+        'timemodified'    => time(),
     ]);
     create_module($m);
     echo "    ✓ Foro: $name\n";
@@ -178,25 +199,34 @@ function add_quiz($courseid, $section, $name, $intro, $weeks_due = 3) {
         echo "    ⟳ Ya existe quiz: $name\n"; return;
     }
     $m = make_mod([
-        'modulename'      => 'quiz',
-        'course'          => $courseid,
-        'section'         => $section,
-        'name'            => $name,
-        'intro'           => $intro,
-        'timeopen'        => 0,
-        'timeclose'       => time() + ($weeks_due * 7 * 24 * 3600),
-        'timelimit'       => 3600,
-        'overduehandling' => 'autosubmit',
-        'graceperiod'     => 0,
+        'modulename'         => 'quiz',
+        'course'             => $courseid,
+        'section'            => $section,
+        'name'               => $name,
+        'intro'              => $intro,
+        'introformat'        => FORMAT_HTML,
+        'timeopen'           => 0,
+        'timeclose'          => time() + ($weeks_due * 7 * 24 * 3600),
+        'timelimit'          => 3600,
+        'overduehandling'    => 'autosubmit',
+        'graceperiod'        => 0,
         'preferredbehaviour' => 'deferredfeedback',
-        'attempts_number' => 2,
-        'attemptonlast'   => 0,
-        'grademethod'     => 1,
-        'decimalpoints'   => 2,
-        'shuffleanswers'  => 1,
-        'grade'           => 20,
-        'questionsperpage' => 5,
-        'navmethod'       => 'free',
+        'attempts_number'    => 2,
+        'attemptonlast'      => 0,
+        'grademethod'        => 1,
+        'decimalpoints'      => 2,
+        'questiondecimalpoints' => -1,
+        'shuffleanswers'     => 1,
+        'grade'              => 20,
+        'questionsperpage'   => 5,
+        'navmethod'          => 'free',
+        'sumgrades'          => 0,
+        'browsersecurity'    => '-',
+        'delay1'             => 0,
+        'delay2'             => 0,
+        'showuserpicture'    => 0,
+        'showblocks'         => 0,
+        'timemodified'       => time(),
     ]);
     create_module($m);
     echo "    ✓ Quiz: $name\n";
