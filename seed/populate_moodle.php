@@ -105,11 +105,14 @@ function safe_create($m, $label) {
     }
 }
 
-function add_page($courseid, $section, $name, $content) {
+function add_page($courseid, $section, $name, $content, $video_id = '', $video_title = '') {
     global $CFG;
     require_once($CFG->dirroot . '/mod/page/lib.php');
     if (mod_exists($courseid, 'page', $name)) {
         echo "    ⟳ Ya existe: $name\n"; return;
+    }
+    if ($video_id) {
+        $content = yt($video_id, $video_title) . $content;
     }
     $m = make_mod([
         'modulename'     => 'page',
@@ -268,7 +271,15 @@ function add_quiz($courseid, $section, $name, $intro, $weeks_due = 3) {
         'timemodified'            => time(),
     ]);
     safe_create($m, "Quiz: $name");
-    echo "    ✓ Quiz: $name\n";
+}
+
+function yt($id, $title = '') {
+    return '<div style="position:relative;padding-bottom:56.25%;height:0;margin:16px 0;border-radius:10px;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,.15);">'
+         . '<iframe src="https://www.youtube.com/embed/' . $id . '?rel=0" '
+         . 'style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;" '
+         . 'allowfullscreen loading="lazy" title="' . htmlspecialchars($title) . '"></iframe>'
+         . '</div>'
+         . ($title ? '<p style="text-align:center;color:#666;font-size:.9em;">▶ ' . htmlspecialchars($title) . '</p>' : '');
 }
 
 // ── Contenido HTML ──────────────────────────────────
@@ -835,7 +846,7 @@ foreach ($courses as $courseid => $coursename) {
 
     if ($courseid === 2) { // AED
         echo "  [Semana 1-2]\n";
-        add_page($courseid, 1, "Introducción a los Algoritmos", $aed_s1_page);
+        add_page($courseid, 1, "Introducción a los Algoritmos", $aed_s1_page, 'HtSuA80QTyo', 'What is an Algorithm? — CS Dojo');
         add_url($courseid,  1, "VisuAlgo — Visualizador de Algoritmos",
             "https://visualgo.net/en", "Visualizador interactivo de estructuras de datos y algoritmos");
         add_url($courseid,  1, "MIT 6.006 — Introducción a Algoritmos",
@@ -853,7 +864,7 @@ foreach ($courses as $courseid => $coursename) {
             "<p>Espacio para dudas sobre fundamentos de algoritmos. Incluye el código o pseudocódigo cuando hagas una pregunta.</p>");
 
         echo "  [Semana 3-4]\n";
-        add_page($courseid, 2, "Complejidad Computacional — Big O", $aed_s2_page);
+        add_page($courseid, 2, "Complejidad Computacional — Big O", $aed_s2_page, 'v4cd1O4zkGw', 'Big O Notation — CS Dojo');
         add_url($courseid,  2, "Big-O Cheat Sheet",
             "https://www.bigocheatsheet.com/", "Referencia rápida de complejidades por algoritmo");
         add_assign($courseid, 2, "Práctica 2: Análisis de Complejidad",
@@ -868,7 +879,7 @@ foreach ($courses as $courseid => $coursename) {
             "<p>Evaluación de 10 preguntas sobre complejidad computacional. Tiempo límite: 30 minutos. Se permite 1 intento.</p>", 3);
 
         echo "  [Semana 5-7]\n";
-        add_page($courseid, 3, "Estructuras de Datos Lineales", $aed_s3_page);
+        add_page($courseid, 3, "Estructuras de Datos Lineales", $aed_s3_page, 'RBSGKlAvoiM', 'Data Structures — freeCodeCamp');
         add_url($courseid,  3, "VisuAlgo — Listas, Pilas y Colas",
             "https://visualgo.net/en/list", "Animaciones interactivas de estructuras lineales");
         add_assign($courseid, 3, "Práctica 3: Implementación de Estructuras Lineales",
@@ -882,7 +893,7 @@ foreach ($courses as $courseid => $coursename) {
             <p>Para cada estructura: 5 casos de prueba incluyendo casos límite.</p>", 4);
 
         echo "  [Semana 8-9]\n";
-        add_page($courseid, 4, "Árboles Binarios y AVL", $aed_s4_page);
+        add_page($courseid, 4, "Árboles Binarios y AVL", $aed_s4_page, 'oSWTXtMglKE', 'Binary Search Trees — Bro Code');
         add_url($courseid,  4, "VisuAlgo — BST y AVL",
             "https://visualgo.net/en/bst", "Visualización de rotaciones AVL");
         add_assign($courseid, 4, "Práctica 4: Árbol Binario de Búsqueda",
@@ -900,7 +911,7 @@ foreach ($courses as $courseid => $coursename) {
             "<p>15 preguntas sobre BST y AVL. Tiempo: 40 minutos.</p>", 5);
 
         echo "  [Semana 12-13]\n";
-        add_page($courseid, 6, "Algoritmos de Ordenamiento", $aed_s5_page);
+        add_page($courseid, 6, "Algoritmos de Ordenamiento", $aed_s5_page, 'kgBjXUE_Kkw', 'Sorting Algorithms — freeCodeCamp');
         add_url($courseid,  6, "Sorting Algorithms Visualized",
             "https://www.toptal.com/developers/sorting-algorithms",
             "Comparación visual y animada de algoritmos de ordenamiento");
@@ -940,7 +951,7 @@ foreach ($courses as $courseid => $coursename) {
 
     } elseif ($courseid === 3) { // BD
         echo "  [Semana 1-2]\n";
-        add_page($courseid, 1, "Fundamentos de Bases de Datos", $bd_s1_page);
+        add_page($courseid, 1, "Fundamentos de Bases de Datos", $bd_s1_page, 'OqjJjpjDRLc', 'Introduction to Databases — mycodeschool');
         add_url($courseid,  1, "PostgreSQL Tutorial Oficial",
             "https://www.postgresql.org/docs/current/tutorial.html", "Documentación oficial de PostgreSQL");
         add_url($courseid,  1, "SQLZoo — Práctica SQL interactiva",
@@ -972,7 +983,7 @@ foreach ($courses as $courseid => $coursename) {
             <p>Entrega: diagrama ER + script SQL de creación con todas las restricciones.</p>", 3);
 
         echo "  [Semana 5-6]\n";
-        add_page($courseid, 3, "SQL Básico — DDL y DML", $bd_s3_page);
+        add_page($courseid, 3, "SQL Básico — DDL y DML", $bd_s3_page, 'HXV3zeQKqGY', 'MySQL Tutorial for Beginners — Programming with Mosh');
         add_assign($courseid, 3, "Práctica 3: CRUD Completo — Sistema Universitario",
             "<p>Crea las tablas del sistema universitario (Estudiante, Docente, Curso, Matrícula) y luego:</p>
             <ol>
@@ -986,7 +997,86 @@ foreach ($courses as $courseid => $coursename) {
         add_quiz($courseid, 3, "Quiz 1: DDL y DML Básico",
             "<p>20 preguntas sobre SQL básico. Tiempo: 45 minutos. 2 intentos permitidos.</p>", 4);
 
+        echo "  [Semana 7-8]\n";
+        add_page($courseid, 4, "SQL Avanzado — JOINs y Subconsultas",
+            '<h2>SQL Avanzado</h2>
+<h3>Tipos de JOIN</h3>
+<table border="1" cellpadding="8" style="border-collapse:collapse;width:100%;">
+<tr style="background:#e8f4f8;"><th>JOIN</th><th>Retorna</th><th>Caso de uso</th></tr>
+<tr><td>INNER JOIN</td><td>Solo filas con coincidencia en ambas tablas</td><td>Estudiantes matriculados (excluye sin matrícula)</td></tr>
+<tr><td>LEFT JOIN</td><td>Todas las filas izquierda + coincidencias</td><td>Todos los estudiantes, con o sin matrícula</td></tr>
+<tr><td>RIGHT JOIN</td><td>Todas las filas derecha + coincidencias</td><td>Todos los cursos, con o sin estudiantes</td></tr>
+<tr><td>FULL OUTER JOIN</td><td>Todas las filas de ambas tablas</td><td>Auditoría completa de relaciones</td></tr>
+<tr><td>CROSS JOIN</td><td>Producto cartesiano</td><td>Combinaciones de opciones/variantes</td></tr>
+</table>
+<h3>Ejemplos Prácticos</h3>
+<pre style="background:#f4f4f4;padding:12px;border-radius:4px;">-- Estudiantes con sus cursos y notas
+SELECT e.nombre, e.apellido, c.nombre AS curso, m.nota,
+       CASE WHEN m.nota >= 14 THEN "Aprobado"
+            WHEN m.nota >= 11 THEN "En proceso"
+            ELSE "Desaprobado" END AS estado
+FROM estudiante e
+JOIN matricula  m ON e.id_est = m.id_est
+JOIN curso      c ON m.id_cur = c.id_cur
+ORDER BY e.apellido, m.nota DESC;
+
+-- Docente con el mayor promedio (subconsulta)
+SELECT d.nombre, AVG(m.nota) AS promedio
+FROM docente d
+JOIN curso c ON c.id_doc = d.id_doc
+JOIN matricula m ON m.id_cur = c.id_cur
+WHERE m.nota IS NOT NULL
+GROUP BY d.id_doc, d.nombre
+ORDER BY promedio DESC
+LIMIT 1;
+
+-- Funciones de ventana (Window Functions) - PostgreSQL
+SELECT e.nombre, c.nombre AS curso, m.nota,
+       RANK() OVER (PARTITION BY m.id_cur ORDER BY m.nota DESC) AS posicion,
+       AVG(m.nota) OVER (PARTITION BY m.id_cur) AS promedio_curso
+FROM estudiante e
+JOIN matricula m ON e.id_est = m.id_est
+JOIN curso c ON m.id_cur = c.id_cur;</pre>',
+            '9yeOJ0ZMUYw', 'SQL Joins — Programming with Mosh');
+        add_assign($courseid, 4, "Práctica 4: SQL Avanzado — JOINs y Funciones de Ventana",
+            "<p>Usando la BD universitaria, resuelve:</p><ol>
+            <li>INNER JOIN: lista completa de notas por estudiante y curso</li>
+            <li>LEFT JOIN: estudiantes SIN ninguna matrícula</li>
+            <li>Docente con mayor promedio de notas en sus cursos</li>
+            <li>Top 3 cursos por número de matriculados</li>
+            <li>Ranking de estudiantes por promedio usando RANK() OVER</li>
+            <li>VIEW que muestre reporte académico completo</li>
+            <li>CTE (WITH) que calcule estadísticas por departamento</li>
+            </ol>", 5);
+
         echo "  [Semana 9-10]\n";
+        add_page($courseid, 5, "Normalización — 1FN, 2FN, 3FN y BCNF",
+            '<h2>Normalización de Bases de Datos</h2>
+<h3>¿Por qué normalizar?</h3>
+<p>La normalización elimina <strong>redundancia</strong> y evita <strong>anomalías de actualización</strong>, inserción y eliminación. Un esquema bien normalizado es más consistente y fácil de mantener.</p>
+<h3>Dependencias Funcionales</h3>
+<p>A → B significa "A determina B" (conocer A implica conocer B exactamente). Ejemplo: <code>id_est → nombre_est</code>.</p>
+<h3>Primera Forma Normal (1FN)</h3>
+<p>❌ <strong>Violación:</strong> columna <code>telefonos = "999-111, 888-222"</code> (valor no atómico)</p>
+<p>✅ <strong>Solución:</strong> tabla separada <code>TELEFONO(id_est FK, numero, tipo)</code></p>
+<h3>Segunda Forma Normal (2FN)</h3>
+<p>❌ <strong>Violación (PK compuesta id_est+id_cur):</strong> <code>nombre_cur</code> depende solo de <code>id_cur</code></p>
+<p>✅ <strong>Solución:</strong> mover <code>nombre_cur</code> a tabla CURSO</p>
+<h3>Tercera Forma Normal (3FN)</h3>
+<p>❌ <strong>Violación:</strong> <code>EMPLEADO(id, nombre, id_dept, nombre_dept)</code> → <code>id→id_dept→nombre_dept</code> (dependencia transitiva)</p>
+<p>✅ <strong>Solución:</strong> tabla <code>DEPARTAMENTO(id_dept PK, nombre_dept)</code></p>
+<h3>Ejemplo Completo de Normalización</h3>
+<pre style="background:#f4f4f4;padding:12px;border-radius:4px;">-- ANTES (sin normalizar):
+PEDIDO(id_ped, fecha, id_cli, nom_cli, email_cli,
+       cod_prod, nom_prod, precio_unit, cantidad, total_linea)
+
+-- DESPUÉS (3FN):
+CLIENTE(id_cli PK, nombre, email UNIQUE)
+PRODUCTO(cod_prod PK, nombre, precio_unitario)
+PEDIDO(id_ped PK, fecha, id_cli FK, subtotal, igv, total)
+DETALLE(id_ped FK, cod_prod FK, cantidad, precio_al_vender)
+  PK: (id_ped, cod_prod)</pre>',
+            'ABwD8IYByfk', 'Database Normalization — 1NF 2NF 3NF');
         add_assign($courseid, 5, "Práctica 5: Normalización hasta 3FN",
             "<p>Normaliza la siguiente tabla hasta la Tercera Forma Normal (3FN):</p>
             <pre>INSCRIPCION(id_ins, fecha_ins, id_est, nom_est, email_est, ciudad_est,
@@ -1024,7 +1114,7 @@ id_cur, nom_cur, creditos, id_doc, nom_doc, dept_doc, nota, fecha_exam)</pre>
 
     } elseif ($courseid === 4) { // IS
         echo "  [Semana 1-2]\n";
-        add_page($courseid, 1, "Introducción a la Ingeniería de Software", $is_s1_page);
+        add_page($courseid, 1, "Introducción a la Ingeniería de Software", $is_s1_page, 'O753uuutqH8', 'Software Engineering: Introduction — MIT OpenCourseWare');
         add_url($courseid,  1, "SWEBOK v3 — Guía de Conocimientos en IS",
             "https://www.computer.org/education/bodies-of-knowledge/software-engineering",
             "Estándar IEEE de conocimientos en Ingeniería de Software");
@@ -1044,6 +1134,28 @@ id_cur, nom_cur, creditos, id_doc, nom_doc, dept_doc, nota, fecha_exam)</pre>
             "<p>Espacio para discutir casos reales, noticias de la industria y reflexiones sobre IS.</p>");
 
         echo "  [Semana 3-4]\n";
+        add_page($courseid, 2, "Metodologías Ágiles — Scrum y Kanban",
+            '<h2>Metodologías Ágiles</h2>
+<h3>Manifiesto Ágil (2001)</h3>
+<p>12 principios sobre 4 valores: <strong>individuos sobre procesos</strong>, <strong>software funcional sobre documentación</strong>, <strong>colaboración con el cliente sobre negociación</strong>, <strong>respuesta al cambio sobre seguir un plan</strong>.</p>
+<h3>Scrum — Marco de Trabajo</h3>
+<table border="1" cellpadding="8" style="border-collapse:collapse;width:100%;">
+<tr style="background:#e8f4f8;"><th>Elemento</th><th>Descripción</th><th>Duración/Frecuencia</th></tr>
+<tr><td>Sprint</td><td>Iteración con entregable funcional</td><td>2-4 semanas</td></tr>
+<tr><td>Daily Scrum</td><td>¿Qué hice? ¿Qué haré? ¿Impedimentos?</td><td>15 min diarios</td></tr>
+<tr><td>Sprint Review</td><td>Demo al Product Owner</td><td>Al final del Sprint</td></tr>
+<tr><td>Retrospectiva</td><td>¿Qué mejorar en el proceso?</td><td>Al final del Sprint</td></tr>
+<tr><td>Sprint Planning</td><td>Seleccionar items del backlog</td><td>Al inicio del Sprint</td></tr>
+</table>
+<h3>Roles en Scrum</h3>
+<ul>
+<li><strong>Product Owner:</strong> prioriza el backlog, representa al cliente</li>
+<li><strong>Scrum Master:</strong> facilita el proceso, elimina impedimentos</li>
+<li><strong>Development Team:</strong> auto-organizado, entrega el incremento</li>
+</ul>
+<h3>Kanban</h3>
+<p>Sistema visual de gestión de flujo de trabajo. Columnas típicas: <em>Por Hacer → En Progreso → Revisión → Hecho</em>. Principio clave: limitar el WIP (Work In Progress) para aumentar el flujo.</p>',
+            '9TycLR0TqFA', 'Scrum en menos de 10 minutos — Atlassian');
         add_url($courseid,  2, "Scrum Guide 2020 en Español",
             "https://scrumguides.org/docs/scrumguide/v2020/2020-Scrum-Guide-Spanish-European.pdf",
             "Guía oficial de Scrum 2020 en español");
@@ -1059,7 +1171,7 @@ id_cur, nom_cur, creditos, id_doc, nom_doc, dept_doc, nota, fecha_exam)</pre>
             <p>Finalmente: compara las dos metodologías para ESE proyecto específico y recomienda cuál usarías con justificación.</p>", 3);
 
         echo "  [Semana 5-6]\n";
-        add_page($courseid, 3, "Requerimientos de Software", $is_s3_page);
+        add_page($courseid, 3, "Requerimientos de Software", $is_s3_page, '4O5GIjy5bk8', 'Agile User Stories — Mountain Goat Software');
         add_assign($courseid, 3, "Taller 3: ERS para el Sistema SWARD",
             "<p>Redacta el Documento de Especificación de Requerimientos (ERS) para el sistema SWARD siguiendo IEEE 830:</p>
             <ol>
@@ -1128,7 +1240,7 @@ id_cur, nom_cur, creditos, id_doc, nom_doc, dept_doc, nota, fecha_exam)</pre>
 
     } elseif ($courseid === 5) { // DW
         echo "  [Semana 1-2]\n";
-        add_page($courseid, 1, "HTML5 Semántico — Fundamentos", $dw_s1_page);
+        add_page($courseid, 1, "HTML5 Semántico — Fundamentos", $dw_s1_page, 'UB1O30fR-EE', 'HTML Crash Course — Traversy Media');
         add_url($courseid,  1, "MDN Web Docs — HTML en Español",
             "https://developer.mozilla.org/es/docs/Web/HTML",
             "Referencia completa de HTML5 en español");
@@ -1147,6 +1259,59 @@ id_cur, nom_cur, creditos, id_doc, nom_doc, dept_doc, nota, fecha_exam)</pre>
             <p>Entrega: archivo .html + captura del validador W3C en verde.</p>", 2);
 
         echo "  [Semana 3-4]\n";
+        add_page($courseid, 2, "CSS3 — Flexbox, Grid y Diseño Responsivo",
+            '<h2>CSS3 Moderno</h2>
+<h3>Flexbox — Layout Unidimensional</h3>
+<pre style="background:#f4f4f4;padding:12px;border-radius:4px;">.container {
+    display: flex;
+    justify-content: space-between; /* horizontal */
+    align-items: center;            /* vertical */
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+.item { flex: 1 1 250px; } /* grow shrink basis */</pre>
+<h3>CSS Grid — Layout Bidimensional</h3>
+<pre style="background:#f4f4f4;padding:12px;border-radius:4px;">.layout {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    grid-template-rows: 64px 1fr 48px;
+    grid-template-areas:
+        "header  header"
+        "sidebar main"
+        "footer  footer";
+    min-height: 100vh;
+    gap: 0;
+}
+header { grid-area: header; }
+aside  { grid-area: sidebar; }
+main   { grid-area: main; }
+footer { grid-area: footer; }</pre>
+<h3>Variables CSS y Temas</h3>
+<pre style="background:#f4f4f4;padding:12px;border-radius:4px;">:root {
+    --primary:    #2563eb;
+    --secondary:  #1e1b4b;
+    --success:    #10b981;
+    --danger:     #ef4444;
+    --text:       #1f2937;
+    --bg:         #f9fafb;
+    --radius:     8px;
+    --shadow:     0 4px 6px rgba(0,0,0,.07);
+    --transition: all .2s ease;
+}
+.btn {
+    background: var(--primary);
+    border-radius: var(--radius);
+    transition: var(--transition);
+}
+.btn:hover { filter: brightness(1.1); }</pre>
+<h3>Media Queries — Mobile First</h3>
+<pre style="background:#f4f4f4;padding:12px;border-radius:4px;">/* Base: mobile */
+.cards { display: grid; grid-template-columns: 1fr; gap: 1rem; }
+
+@media (min-width: 640px)  { .cards { grid-template-columns: 1fr 1fr; } }
+@media (min-width: 1024px) { .cards { grid-template-columns: repeat(3, 1fr); } }
+@media (min-width: 1280px) { .cards { grid-template-columns: repeat(4, 1fr); } }</pre>',
+            'JJSoEo8JSnc', 'Flexbox CSS — Traversy Media Crash Course');
         add_url($courseid,  2, "CSS Tricks — Guía Completa de Flexbox",
             "https://css-tricks.com/snippets/css/a-guide-to-flexbox/",
             "Referencia visual exhaustiva de Flexbox");
@@ -1165,7 +1330,7 @@ id_cur, nom_cur, creditos, id_doc, nom_doc, dept_doc, nota, fecha_exam)</pre>
             </ol>", 3);
 
         echo "  [Semana 5-7]\n";
-        add_page($courseid, 3, "JavaScript ES6+ — Sintaxis Moderna", $dw_s3_page);
+        add_page($courseid, 3, "JavaScript ES6+ — Sintaxis Moderna", $dw_s3_page, 'hdI2bqOjy3c', 'JavaScript Crash Course — Traversy Media');
         add_url($courseid,  3, "JavaScript.info — Guía Completa en Español",
             "https://es.javascript.info/", "La mejor guía de JavaScript moderno en español");
         add_assign($courseid, 3, "Proyecto 3: App To-Do con JavaScript Puro",
@@ -1184,6 +1349,52 @@ id_cur, nom_cur, creditos, id_doc, nom_doc, dept_doc, nota, fecha_exam)</pre>
             "<p>25 preguntas sobre los fundamentos web vistos hasta ahora. Tiempo: 45 minutos.</p>", 4);
 
         echo "  [Semana 8-10]\n";
+        add_page($courseid, 4, "React 18 — Componentes, Hooks y Estado",
+            '<h2>React 18 — Fundamentos</h2>
+<h3>¿Por qué React?</h3>
+<p>React es la librería de UI más usada en la industria (más del 40% de los proyectos web según Stack Overflow Survey 2023). Permite construir interfaces declarativas y reutilizables basadas en componentes.</p>
+<h3>Componente Funcional Moderno</h3>
+<pre style="background:#f4f4f4;padding:12px;border-radius:4px;">import { useState, useEffect } from "react";
+
+function TarjetaCurso({ id, nombre, creditos, docente }) {
+    const [matriculado, setMatriculado] = useState(false);
+    const [loading, setLoading] = useState(false);
+
+    const matricularse = async () => {
+        setLoading(true);
+        try {
+            await fetch("/api/matriculas", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ cursoId: id }),
+            });
+            setMatriculado(true);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return (
+        &lt;article className="card"&gt;
+            &lt;h3&gt;{nombre}&lt;/h3&gt;
+            &lt;p&gt;{creditos} créditos · {docente}&lt;/p&gt;
+            &lt;button onClick={matricularse} disabled={matriculado || loading}&gt;
+                {loading ? "Procesando..." : matriculado ? "✓ Matriculado" : "Matricularme"}
+            &lt;/button&gt;
+        &lt;/article&gt;
+    );
+}</pre>
+<h3>Hooks Esenciales</h3>
+<table border="1" cellpadding="8" style="border-collapse:collapse;width:100%;">
+<tr style="background:#e8f4f8;"><th>Hook</th><th>Para qué sirve</th><th>Cuándo usarlo</th></tr>
+<tr><td>useState</td><td>Estado local del componente</td><td>Datos que cambian y causan re-render</td></tr>
+<tr><td>useEffect</td><td>Efectos secundarios</td><td>Fetch de datos, suscripciones, timers</td></tr>
+<tr><td>useContext</td><td>Estado global sin props drilling</td><td>Usuario autenticado, tema, idioma</td></tr>
+<tr><td>useReducer</td><td>Estado complejo con acciones</td><td>Formularios complejos, carrito de compras</td></tr>
+<tr><td>useMemo</td><td>Memoizar valores costosos</td><td>Cálculos pesados que dependen de props</td></tr>
+<tr><td>useCallback</td><td>Memoizar funciones</td><td>Funciones pasadas como props a hijos</td></tr>
+</table>',
+            'w7ejDZ8SWv8', 'React Crash Course 2024 — Traversy Media');
         add_url($courseid,  4, "React.dev — Documentación Oficial",
             "https://es.react.dev/", "Documentación oficial de React en español");
         add_url($courseid,  4, "Vite — Build Tool Moderno",
@@ -1201,6 +1412,61 @@ id_cur, nom_cur, creditos, id_doc, nom_doc, dept_doc, nota, fecha_exam)</pre>
             </ol>", 5);
 
         echo "  [Semana 11-12]\n";
+        add_page($courseid, 5, "Node.js, Express y API REST",
+            '<h2>Backend con Node.js y Express</h2>
+<h3>¿Por qué Node.js?</h3>
+<p>Node.js permite usar JavaScript en el servidor. Es <strong>asíncrono y no bloqueante</strong>, ideal para APIs con muchas conexiones concurrentes. Es el runtime más usado en backend según Stack Overflow Survey 2023.</p>
+<h3>API REST con Express — Estructura Profesional</h3>
+<pre style="background:#f4f4f4;padding:12px;border-radius:4px;">// server.js
+import express from "express";
+import cors    from "cors";
+import helmet  from "helmet";
+import { cursosRouter } from "./routes/cursos.js";
+import { authRouter }   from "./routes/auth.js";
+import { errorHandler } from "./middleware/error.js";
+
+const app = express();
+
+app.use(helmet());
+app.use(cors({ origin: process.env.CLIENT_URL }));
+app.use(express.json());
+
+app.use("/api/auth",   authRouter);
+app.use("/api/cursos", cursosRouter);
+app.use(errorHandler); // siempre al final
+
+app.listen(3000, () => console.log("API en :3000"));</pre>
+<h3>Autenticación JWT</h3>
+<pre style="background:#f4f4f4;padding:12px;border-radius:4px;">// middleware/auth.js
+import jwt from "jsonwebtoken";
+
+export const requireAuth = (req, res, next) => {
+    const token = req.headers.authorization?.split(" ")[1];
+    if (!token) return res.status(401).json({ error: "No autenticado" });
+    try {
+        req.user = jwt.verify(token, process.env.JWT_SECRET);
+        next();
+    } catch {
+        res.status(401).json({ error: "Token inválido o expirado" });
+    }
+};</pre>
+<h3>Validación con Zod</h3>
+<pre style="background:#f4f4f4;padding:12px;border-radius:4px;">import { z } from "zod";
+
+const CursoSchema = z.object({
+    nombre:   z.string().min(3).max(100),
+    creditos: z.number().int().min(1).max(6),
+    docenteId: z.number().int().positive(),
+});
+
+// En el router:
+app.post("/api/cursos", requireAuth, async (req, res) => {
+    const parsed = CursoSchema.safeParse(req.body);
+    if (!parsed.success) return res.status(400).json(parsed.error.flatten());
+    const curso = await prisma.curso.create({ data: parsed.data });
+    res.status(201).json(curso);
+});</pre>',
+            'fBNz5xF-Kx4', 'Node.js Crash Course — Traversy Media');
         add_url($courseid,  5, "Express.js — Documentación en Español",
             "https://expressjs.com/es/", "Framework minimalista para Node.js");
         add_url($courseid,  5, "JWT.io — Debugger de Tokens",
