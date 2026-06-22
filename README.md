@@ -1,32 +1,61 @@
 # sward-moodle-test
 
-Entorno **Moodle real dockerizado** con datos de prueba, para validar la
-integracion del microservicio
+Herramientas para **levantar y poblar un Moodle de pruebas** del MVP de SWARD.
+
+Esta carpeta contiene todo lo necesario para tener una instancia **real** de
+Moodle (no el mock) cargada con cursos, contenido académico, docentes,
+estudiantes, **calificaciones** e **interacciones**, de modo que el microservicio
 [`sward-ms-integracion-lms`](https://github.com/sward-UPC/sward-ms-integracion-lms)
-contra una instancia **real** de Moodle (no contra el mock).
+pueda sincronizar datos reales y el modelo **SAKT** (Knowledge Tracing) reciba
+señal suficiente para reentrenarse.
 
-Sirve como banco de pruebas del MVP de SWARD: levanta Moodle + MariaDB con un
-solo comando, se cargan cursos/docentes/estudiantes de prueba, se habilitan los
-Web Services REST de Moodle y se apunta `sward-ms-integracion-lms` a esta
-instancia (`MOODLE_MOCK=false`) para verificar la sincronizacion real con
-`POST /lms/sync`.
+Incluye:
 
-> Stack: imagenes oficiales de **Bitnami** (`bitnami/moodle:4.5` LTS + `bitnami/mariadb:11.4`),
-> que automatizan el bootstrap (instalacion de Moodle, BD y usuario admin).
+- Un **entorno dockerizado** (Moodle 4.5 LTS + MariaDB) reproducible.
+- **Scripts de creación de cursos y contenido** vía los Web Services REST de Moodle.
+- **Seeders de notas e interacciones** (vía REST y vía la API interna de Moodle)
+  que generan la señal calificable que consume el SAKT.
+
+> ⚠️ Entorno **no apto para producción**: usa credenciales débiles de prueba,
+> sin TLS ni backups. Todas las credenciales viven en el `docker-compose.yml`
+> (admin/BD) y en `seed/.env` (token de Web Services); este README **no** incluye
+> valores de credenciales.
 
 ---
 
-## Contenido del repo
+## Estructura de la carpeta
 
 ```
 .
-├── docker-compose.yml      # Moodle 4.5 LTS + MariaDB con healthchecks y volumenes
-├── Makefile                # make up | down | wait | seed | token | clean
+├── docker-compose.yml                # Moodle 4.5 LTS + MariaDB con healthchecks y volúmenes
+├── Makefile                          # make up | down | wait | seed | token | clean
+├── coolify.json                      # descriptor de despliegue en Coolify (Moodle de pruebas remoto)
+│
 ├── seed/
-│   ├── seed.sh             # crea 3 cursos, 2 docentes y 10 estudiantes via REST
-│   └── .env.example        # plantilla con MOODLE_URL y MOODLE_TOKEN
-├── .gitignore
-└── README.md
+│   ├── seed.sh                       # crea cursos/docentes/estudiantes + matrículas (REST)
+│   ├── populate_moodle.php           # puebla contenido académico (CLI dentro del contenedor)
+│   ├── seed_kt_interactions.php      # crea módulos CALIFICABLES e interacciones para el SAKT (API interna)
+│   └── .env.example                  # plantilla con MOODLE_URL y MOODLE_TOKEN
+│
+├── create_course_content*.py         # creación de contenido del curso AED (varias iteraciones, vía REST)
+├── create_bd_course_content.py       # contenido del curso de Bases de Datos (vía REST)
+├── create_ingenieria_software.py     # contenido del curso de Ingeniería de Software (vía REST)
+├── create_web_development_course.py  # contenido del curso de Desarrollo Web (vía REST)
+├── populate_web_dev_content.py       # puebla el curso de Desarrollo Web con recursos/quizzes (vía REST)
+│
+├── seed_realistic_grades.py          # siembra notas realistas y variadas por estudiante/curso (REST)
+├── seed_more_data.py                 # enriquece datos (renombra alumnos, +cursos, re-siembra notas) (REST)
+├── seed_programacion.py              # agrega cursos de programación + alumnos + interacciones (REST)
+│
+├── fix_moodle.py                     # arregla el sitio: nombre "SWARD" y roles globales por prefijo
+├── upload_content.sh                 # sube contenido a secciones de curso vía REST (curl)
+│
+├── WEB_DEVELOPMENT_COURSE.json       # definición del curso de Desarrollo Web (estructura de secciones)
+├── WEB_DEVELOPMENT_CONTENT.json      # contenido detallado del curso de Desarrollo Web
+├── sql_examples_bd_course.sql        # ejemplos SQL usados como material del curso de Bases de Datos
+│
+├── GUIA_INTEGRACION_MOODLE.md        # guía de referencia de integración con Moodle
+└── 00_LEEME_PRIMERO.txt              # notas de onboarding (histórico)
 ```
 
 ---
@@ -34,194 +63,193 @@ instancia (`MOODLE_MOCK=false`) para verificar la sincronizacion real con
 ## Requisitos
 
 - Docker + Docker Compose v2 (`docker compose version`)
-- `curl` y `jq` (para el seed y los comandos de verificacion)
-- Conexion a internet (la primera vez descarga las imagenes de Bitnami)
+- `curl` y `jq` (para el seed y la verificación)
+- Python 3.11+ con `requests` (para los scripts `*.py`)
+- Acceso a la instancia de Moodle (local con docker, o la remota en Coolify)
 
 ---
 
 ## 1. Levantar Moodle
 
 ```bash
-docker compose up -d
-# o:  make up
+docker compose up -d     # o:  make up
 ```
 
 La **primera vez** Moodle tarda **varios minutos** (instala la BD, ejecuta
-migraciones y arranca Apache). Espera a que el healthcheck pase antes de
-continuar:
+migraciones y arranca). Espera a que el healthcheck pase:
 
 ```bash
-# Opcion A: con el target del Makefile (hace polling hasta que responda)
-make wait
-
-# Opcion B: revisar el estado de salud del contenedor
-docker compose ps           # la columna STATUS debe decir (healthy)
-
-# Opcion C: seguir los logs hasta ver "moodle: ... ready to handle connections"
+make wait                # polling hasta que /login/index.php responda
+docker compose ps        # la columna STATUS debe decir (healthy)
 docker compose logs -f moodle
 ```
 
-Cuando este listo, abre: <http://localhost:8090>
+Cuando esté listo, abre <http://localhost:8090>.
 
-### Credenciales por defecto (SOLO entorno de prueba)
-
-> No usar estos valores en produccion. Estan documentados aqui porque este
-> repo es un banco de pruebas desechable.
-
-| Dato            | Valor                |
-|-----------------|----------------------|
-| URL             | http://localhost:8090 |
-| Usuario admin   | `admin`              |
-| Password admin  | `Sward2026!`         |
-| Email admin     | `admin@sward.test`   |
-| Nombre del sitio| `SWARD Moodle Test`  |
-
-Base de datos MariaDB (interna): db `bitnami_moodle`, usuario `bn_moodle`,
-password `bn_moodle_pass`, root `root_pass`.
-
-Los usuarios de prueba creados por el seed (docentes y estudiantes) usan la
-misma password: `Sward2026!`.
+Las credenciales del admin y de la BD están definidas como variables de entorno
+en `docker-compose.yml` (sección `environment` de los servicios `moodle` y
+`mariadb`). **No las copies a producción.**
 
 ---
 
 ## 2. Habilitar los Web Services REST y generar un token
 
-`sward-ms-integracion-lms` consume los Web Services REST de Moodle
-(`/webservice/rest/server.php`). Hay que habilitarlos una sola vez tras el
-primer arranque. Inicia sesion como `admin` y sigue estos pasos:
+Los scripts de creación de contenido y los seeders de notas consumen los
+Web Services REST de Moodle (`/webservice/rest/server.php`). Hay que habilitarlos
+una sola vez tras el primer arranque, iniciando sesión como `admin`:
 
-### 2.1 Habilitar Web Services
+1. **Site administration → Advanced features** → marca **Enable web services**.
+2. **Server → Web services → Manage protocols** → habilita **REST protocol**.
+3. **Server → Web services → External services** → crea un servicio (p. ej.
+   `SWARD Integracion LMS`) y agrégale las funciones que usan los scripts:
 
-1. **Site administration → Advanced features**
-   (`/admin/search.php` → "Advanced features").
-2. Marca **Enable web services** (`enablewebservices`) y guarda.
+   | Función REST                       | Uso                                            |
+   |------------------------------------|------------------------------------------------|
+   | `core_webservice_get_site_info`    | verificar token / sitio                        |
+   | `core_course_get_courses`          | sincronizar cursos                             |
+   | `core_course_get_courses_by_field` | buscar curso por shortname (idempotencia)      |
+   | `core_course_create_courses`       | crear cursos                                   |
+   | `core_course_edit_section`         | nombrar/llenar secciones (contenido por WS)    |
+   | `core_course_get_contents`         | leer estructura/actividades de un curso        |
+   | `core_user_create_users`           | crear docentes y estudiantes                   |
+   | `core_user_get_users_by_field`     | buscar usuarios (idempotencia)                 |
+   | `core_user_update_users`           | renombrar usuarios (nombres realistas)         |
+   | `enrol_manual_enrol_users`         | matricular usuarios en cursos                  |
+   | `mod_assign_save_grade`            | escribir calificaciones de tareas              |
+   | `gradereport_user_get_grade_items` | leer calificaciones por curso (verificación)   |
+   | `core_completion_update_activity_completion_status_manually` | marcar completados |
 
-### 2.2 Habilitar el protocolo REST
-
-1. **Site administration → Server → Web services → Manage protocols**
-   (`/admin/settings.php?section=webserviceprotocols`).
-2. Habilita **REST protocol**.
-
-### 2.3 Crear un "external service" con las funciones que usa SWARD
-
-1. **Site administration → Server → Web services → External services**
-   (`/admin/settings.php?section=externalservices`).
-2. **Add** un servicio nuevo, p. ej. nombre `SWARD Integracion LMS`,
-   shortname `sward_lms`, marca **Enabled** y **Authorised users only**
-   (o desmarcalo para permitir cualquier usuario autorizado). Guarda.
-3. En ese servicio, click en **Functions → Add functions** y agrega como
-   minimo las funciones que consume el microservicio:
-
-   | Funcion REST                         | Uso en SWARD                                  |
-   |--------------------------------------|-----------------------------------------------|
-   | `core_webservice_get_site_info`      | (recomendada) verificar token / sitio         |
-   | `core_course_get_courses`            | **sincronizar cursos** (`get_courses`)        |
-   | `core_course_get_courses_by_field`   | buscar curso por shortname (seed idempotente) |
-   | `core_course_get_contents`           | **sincronizar actividades** (`get_activities`)|
-   | `gradereport_user_get_grade_items`   | calificaciones por curso (`get_grades`)       |
-   | `core_grades_get_grades`             | calificaciones (alternativa)                  |
-
-   Funciones adicionales que necesita el **seed** para crear datos via REST:
-
-   | Funcion REST                       | Uso                                  |
-   |------------------------------------|--------------------------------------|
-   | `core_course_create_courses`       | crear cursos                         |
-   | `core_user_create_users`           | crear docentes y estudiantes         |
-   | `core_user_get_users_by_field`     | buscar usuarios (idempotencia)       |
-   | `enrol_manual_enrol_users`         | matricular usuarios en cursos        |
-
-   > Para **logs/interacciones** (cuando se implementen en el microservicio)
-   > se suelen usar funciones de reportes como
-   > `core_completion_get_activities_completion_status` o consultas al
-   > `logstore`. Hoy `get_grades`/`get_events` del adaptador devuelven vacio,
-   > asi que las dos primeras tablas bastan para el MVP de sincronizacion.
-
-### 2.4 Generar el token
-
-Opcion rapida (usar el admin como usuario del servicio):
-
-1. **Site administration → Server → Web services → Manage tokens**
-   (`/admin/settings.php?section=webservicetokens`).
-2. **Create token**: selecciona el usuario `admin`, el servicio
-   `SWARD Integracion LMS` y guarda.
-3. Copia el token (cadena hex de 32 caracteres).
-
-> Para un piloto mas realista, crea un **usuario de servicio** dedicado con un
-> rol que tenga la capability `webservice/rest:use` y los permisos de lectura
-> de cursos, y genera el token para ese usuario en vez del admin.
+4. **Server → Web services → Manage tokens** → **Create token** para el usuario
+   `admin` y el servicio creado. Copia el token (cadena hex de 32 caracteres).
 
 Verifica el token:
 
 ```bash
 TOKEN=<tu-token>
-curl -s "http://localhost:8090/webservice/rest/server.php?wstoken=$TOKEN&moodlewsrestformat=json&wsfunction=core_webservice_get_site_info" | jq '{sitename, username, functions: (.functions | length)}'
+curl -s "http://localhost:8090/webservice/rest/server.php?wstoken=$TOKEN&moodlewsrestformat=json&wsfunction=core_webservice_get_site_info" \
+  | jq '{sitename, username, functions: (.functions | length)}'
 ```
+
+> Los scripts `*.py` leen la URL y el token de su configuración interna. Para tu
+> instancia, ajusta `MOODLE_URL`/`MOODLE_TOKEN` (o `.env`) antes de ejecutarlos.
+> **Nunca subas tokens reales al repositorio.**
 
 ---
 
-## 3. Cargar datos de prueba (seed)
+## 3. Poblar Moodle
 
-El PRD del piloto pide **>=10 estudiantes** y **>=2 docentes**. El seed crea:
+El poblado se hace en capas. Según lo que necesites, usa una o varias de estas
+herramientas:
 
-- **3 cursos**: `SWARD-AED`, `SWARD-BD`, `SWARD-IS`
-- **2 docentes** (rol `editingteacher`)
-- **10 estudiantes** (rol `student`)
-- **Matricula** de los 2 docentes y los 10 estudiantes en los 3 cursos
+### 3.1 Estructura base — usuarios, cursos y matrículas (`seed/seed.sh`)
+
+Crea N cursos, M docentes y K estudiantes (por defecto cumple el PRD del piloto:
+≥10 estudiantes, ≥2 docentes) y los matricula. Es **idempotente** (busca por
+shortname/username antes de crear).
 
 ```bash
-cp seed/.env.example seed/.env
-# edita seed/.env y pega el TOKEN del paso 2.4
-./seed/seed.sh
-# o:  make seed
+cp seed/.env.example seed/.env       # edita y pega tu MOODLE_TOKEN
+./seed/seed.sh                        # o:  make seed
+NUM_COURSES=5 NUM_TEACHERS=3 NUM_STUDENTS=20 ./seed/seed.sh
+./seed/seed.sh --cleanup              # elimina todos los datos del seed
 ```
 
-El script es idempotente (busca por shortname/username antes de crear), asi que
-puedes re-ejecutarlo sin duplicar datos.
+Tras el primer seed, `fix_moodle.py` ajusta el **nombre del sitio** y asigna
+**roles globales** por prefijo de username (`estudiante*` → Student,
+`docente*` → Teacher).
 
-### Actividades (quiz/assign) y calificaciones — paso manual
+### 3.2 Contenido académico de los cursos (vía REST)
 
-Moodle **no expone via REST por defecto** la creacion de modulos de curso
-(quiz/assign). Por eso se crean desde la UI (son pocos clicks):
+Cada script crea/edita el contenido de un curso (secciones temáticas, recursos,
+descripciones, enunciados de práctica y quizzes) usando los Web Services REST:
 
-1. Entra a un curso (p. ej. `SWARD-AED`) → **activa la edicion**.
-2. **Add an activity or resource** → elige **Quiz** o **Assignment**, ponle
-   nombre y guarda. Repite para 1-2 actividades por curso.
-3. Para tener **calificaciones**: entra al **Grader report** del curso
-   (`Grades`) e introduce notas manuales para algunos estudiantes, o califica
-   un envio del Assignment. Asi `gradereport_user_get_grade_items` devolvera
-   datos reales.
+- `create_course_content.py` / `_v2.py` / `_final.py` — curso **Algoritmos y
+  Estructuras de Datos** (varias iteraciones según las funciones WS disponibles).
+- `create_bd_course_content.py` — curso **Bases de Datos** (usa
+  `sql_examples_bd_course.sql` como material).
+- `create_ingenieria_software.py` — curso **Ingeniería de Software**.
+- `create_web_development_course.py` + `populate_web_dev_content.py` — curso
+  **Desarrollo Web** (la estructura se describe en `WEB_DEVELOPMENT_COURSE.json`
+  y el contenido en `WEB_DEVELOPMENT_CONTENT.json`).
+- `upload_content.sh` — sube/actualiza el `summary` de secciones de curso por REST
+  (alternativa en `curl` puro).
 
-> Alternativa avanzada (opcional): la herramienta CLI `moosh`
-> (`moosh activity-add`, `moosh user-mod`) permite scriptar tambien las
-> actividades, pero requiere instalarla dentro del contenedor; para el MVP el
-> camino manual es mas rapido.
+> Limitación: la API WS de Moodle **no** permite crear módulos calificables
+> (assign/quiz) ni secciones sueltas. Por eso el contenido por REST se vuelca
+> principalmente en el `summary` de cada sección, y la **señal calificable** se
+> genera con los scripts del paso 3.3.
+
+### 3.3 Contenido completo desde dentro del contenedor — la API interna (PHP CLI)
+
+Para crear los módulos **calificables** que necesita el SAKT hay que usar la API
+**interna** de Moodle (no la WS, que es limitada). Estos scripts se ejecutan
+**dentro del contenedor** de Moodle:
+
+```bash
+# copiar el script dentro del contenedor y ejecutarlo con el PHP de Moodle
+docker compose cp seed/seed_kt_interactions.php moodle:/tmp/seed_kt_interactions.php
+docker compose exec moodle php /tmp/seed_kt_interactions.php
+```
+
+- **`seed/populate_moodle.php`** — puebla contenido académico real (secciones,
+  recursos) de los cursos usando la API interna.
+- **`seed/seed_kt_interactions.php`** — el seeder clave para el **SAKT**. En cada
+  sección (= un *concepto*) de los cursos objetivo crea:
+  - una **Tarea** (`assign`) → señal **calificable** (acierto/error por concepto),
+  - una **Lectura** (`page`) y un **Video** (`url`) → señal de engagement/formato.
+
+  Luego asegura un pool de estudiantes con nombres realistas, los matricula y
+  **califica cada tarea** con una banda de habilidad por alumno más una
+  **tendencia de aprendizaje** a lo largo de las secciones (primeras más bajas,
+  últimas más altas), y marca completados. Es **idempotente** y acepta parámetros
+  por variable de entorno: `COURSES`, `N_STUDENTS`, `USER_PREFIX`, `DRY_RUN`.
+
+### 3.4 Notas e interacciones adicionales (vía REST)
+
+Sobre cursos que **ya** tienen tareas calificables (creadas en 3.3) se puede
+seguir generando señal por REST con `mod_assign_save_grade`:
+
+- `seed_realistic_grades.py` — siembra notas **realistas y variadas**: nivel de
+  habilidad determinístico por (estudiante, curso) + ruido por actividad, a ambos
+  lados del 50%. Verifica con `gradereport_user_get_grade_items`.
+- `seed_more_data.py` — incremental y no destructivo: renombra estudiantes con
+  nombres peruanos realistas, crea cursos/secciones (conceptos) nuevos, matricula
+  y **re-siembra notas con tendencia de aprendizaje**, y marca completados.
+- `seed_programacion.py` — agrega cursos de **programación** + ~40 estudiantes
+  nuevos (prefijos propios para no colisionar con otros seeders) + matrículas e
+  interacciones a gran escala.
 
 ---
 
-## 4. Conectar `sward-ms-integracion-lms` a este Moodle
+## 4. Flujo completo: poblar Moodle → sincronizar LMS → reentrenar SAKT
 
-En el repo del microservicio, edita su `.env` para apuntar al Moodle real:
+```
+┌──────────────────────┐   ┌───────────────────────────┐   ┌──────────────────────┐
+│ 1. POBLAR MOODLE     │   │ 2. SINCRONIZAR LMS        │   │ 3. REENTRENAR SAKT   │
+│                      │   │                           │   │                      │
+│ seed.sh (usuarios/   │   │ sward-ms-integracion-lms  │   │ pipeline SAKT toma   │
+│   cursos)            │──▶│ con MOODLE_MOCK=false lee │──▶│ las interacciones    │
+│ create_*/populate_*  │   │ cursos, actividades,      │   │ reales y reentrena   │
+│   (contenido)        │   │ calificaciones e          │   │ el modelo de         │
+│ seed_kt_interactions │   │ interacciones vía REST y  │   │ Knowledge Tracing    │
+│   (módulos+notas)    │   │ las ingiere a SWARD       │   │                      │
+└──────────────────────┘   └───────────────────────────┘   └──────────────────────┘
+```
+
+### 4.1 Conectar `sward-ms-integracion-lms` a este Moodle
+
+En el `.env` del microservicio:
 
 ```dotenv
-# sward-ms-integracion-lms/.env
 MOODLE_MOCK=false
 MOODLE_BASE_URL=http://localhost:8090
-MOODLE_TOKEN=<token-generado-en-el-paso-2.4>
+MOODLE_TOKEN=<token-del-paso-2>
 ```
 
-> El microservicio llama a `{MOODLE_BASE_URL}/webservice/rest/server.php` con
-> `wstoken`, `moodlewsrestformat=json` y `wsfunction`. Con `MOODLE_MOCK=false`
-> usa el adaptador real (`MoodleApiAdapter`) en vez del mock.
+Con `MOODLE_MOCK=false` el microservicio usa el adaptador real
+(`MoodleApiAdapter`) y llama a `{MOODLE_BASE_URL}/webservice/rest/server.php`.
 
-Levanta el microservicio (segun su README; normalmente):
-
-```bash
-cd ../sward-ms-integracion-lms
-uvicorn src.infrastructure.adapters.in_.main:app --reload --port 8000
-```
-
-Dispara la sincronizacion real. El endpoint `POST /lms/sync` exige un JWT de
-acceso (emitido por `sward-ms-usuarios`):
+### 4.2 Disparar la sincronización
 
 ```bash
 curl -X POST http://localhost:8000/lms/sync \
@@ -229,55 +257,52 @@ curl -X POST http://localhost:8000/lms/sync \
   -H "Content-Type: application/json"
 ```
 
-Deberia traer los **3 cursos reales** (`SWARD-AED`, `SWARD-BD`, `SWARD-IS`) y
-sus actividades, en vez de los datos del mock.
-
-### Verificacion directa contra la API REST de Moodle (sin el microservicio)
-
-Replica exactamente las llamadas que hace el adaptador real:
+### 4.3 Verificación directa contra la API REST de Moodle (sin el microservicio)
 
 ```bash
 TOKEN=<tu-token>
 BASE=http://localhost:8090/webservice/rest/server.php
 
-# 1) Cursos (lo que usa get_courses -> core_course_get_courses)
+# Cursos
 curl -s "$BASE?wstoken=$TOKEN&moodlewsrestformat=json&wsfunction=core_course_get_courses" \
   | jq '.[] | {id, shortname, fullname}'
 
-# 2) Contenidos/actividades de un curso (get_activities -> core_course_get_contents)
-#    Sustituye COURSEID por el id de SWARD-AED que devolvio el seed.
+# Contenidos/actividades de un curso (sustituye COURSEID)
 curl -s "$BASE?wstoken=$TOKEN&moodlewsrestformat=json&wsfunction=core_course_get_contents&courseid=COURSEID" \
   | jq '.[].modules[]? | {id, name, modname}'
 
-# 3) Calificaciones de un curso (get_grades -> gradereport_user_get_grade_items)
+# Calificaciones de un curso
 curl -s "$BASE?wstoken=$TOKEN&moodlewsrestformat=json&wsfunction=gradereport_user_get_grade_items&courseid=COURSEID" \
   | jq '.usergrades[]? | {userid, gradeitems: (.gradeitems | length)}'
 ```
 
-Si estos comandos devuelven datos, `sward-ms-integracion-lms` con
-`MOODLE_MOCK=false` sincronizara correctamente.
+Si estos comandos devuelven datos, la sincronización real funcionará y el SAKT
+recibirá interacciones para reentrenar.
 
 ---
 
-## Operacion
+## Operación
 
 ```bash
-make up        # levantar
+make up        # levantar Moodle + MariaDB
 make wait      # esperar bootstrap
 make ps        # estado / health
 make logs      # ver logs de Moodle
-make seed      # cargar datos de prueba
-make down      # parar (conserva datos)
-make clean     # parar y BORRAR volumenes (reset total)
+make seed      # cargar datos de prueba (requiere seed/.env con el token)
+make token     # recordar cómo generar el token (paso manual en la UI)
+make down      # parar (conserva datos/volúmenes)
+make clean     # parar y BORRAR volúmenes (reset total)
 ```
 
 ---
 
 ## Notas
 
-- Los volumenes `moodle_data`, `moodledata_data` y `mariadb_data` persisten los
-  datos entre reinicios. Usa `make clean` para empezar de cero.
-- Si cambias el puerto publicado, actualiza tambien `MOODLE_HOST` en el
+- Los volúmenes (`mariadb_data`, `moodledata_data`, `moodlehtml_data`) persisten
+  los datos entre reinicios. Usa `make clean` para empezar de cero.
+- Los scripts de seed son **idempotentes / no destructivos**: re-ejecutarlos no
+  duplica usuarios ni módulos.
+- Si cambias el puerto publicado, actualiza también `SITE_URL` en
   `docker-compose.yml` para que Moodle genere URLs correctas.
-- Entorno **no apto para produccion**: credenciales debiles documentadas, sin
-  TLS, sin backups.
+- `seed/.env` está en `.gitignore` porque contiene el token de Web Services.
+  **Nunca** subas tokens ni credenciales al repositorio.
