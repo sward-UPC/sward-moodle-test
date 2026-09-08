@@ -162,7 +162,7 @@ create_course() {
   local fullname="$1" shortname="$2" cat="${3:-1}"
   local existing; existing="$(course_id_by_shortname "$shortname")"
   if [ -n "$existing" ]; then
-    echo -e "${YELLOW}⟳${NC} Curso '$shortname' ya existe (id=$existing)"
+    echo -e "${YELLOW}⟳${NC} Curso '$shortname' ya existe (id=$existing)" >&2
     echo "$existing"
     return
   fi
@@ -173,7 +173,7 @@ create_course() {
     "courses[0][categoryid]=${cat}" \
     "courses[0][summary]=Curso de prueba - SWARD" \
     "courses[0][visible]=1" | jq -r '.[0].id')
-  echo -e "${GREEN}✓${NC} Curso '$shortname' creado (id=$cid)"
+  echo -e "${GREEN}✓${NC} Curso '$shortname' creado (id=$cid)" >&2
   echo "$cid"
 }
 
@@ -181,14 +181,14 @@ create_course() {
 # 3) Crear usuarios (idempotente)
 # ---------------------------------------------------------------------------
 user_id_by_username() {
-  call core_user_get_users_by_field field=username "value=$1" 2>/dev/null | jq -r '.[0].id // empty' || true
+  call core_user_get_users_by_field field=username "values[0]=$1" 2>/dev/null | jq -r '.[0].id // empty' || true
 }
 
 create_user() {
   local username="$1" first="$2" last="$3" email="$4"
   local existing; existing="$(user_id_by_username "$username")"
   if [ -n "$existing" ]; then
-    echo -e "${YELLOW}⟳${NC} Usuario '$username' ya existe (id=$existing)"
+    echo -e "${YELLOW}⟳${NC} Usuario '$username' ya existe (id=$existing)" >&2
     echo "$existing"
     return
   fi
@@ -199,7 +199,7 @@ create_user() {
     "users[0][firstname]=${first}" \
     "users[0][lastname]=${last}" \
     "users[0][email]=${email}" | jq -r '.[0].id')
-  echo -e "${GREEN}✓${NC} Usuario '$username' creado (id=$uid)"
+  echo -e "${GREEN}✓${NC} Usuario '$username' creado (id=$uid)" >&2
   echo "$uid"
 }
 
@@ -208,11 +208,15 @@ create_user() {
 # ---------------------------------------------------------------------------
 enrol_user() {
   local userid="$1" courseid="$2" roleid="$3" role_name="$4"
-  call enrol_manual_enrol_users \
-    "enrolments[0][roleid]=${roleid}" \
-    "enrolments[0][userid]=${userid}" \
-    "enrolments[0][courseid]=${courseid}" >/dev/null 2>&1 || true
-  echo -e "${GREEN}✓${NC} Usuario $userid matriculado como $role_name en curso $courseid"
+  if call enrol_manual_enrol_users \
+      "enrolments[0][roleid]=${roleid}" \
+      "enrolments[0][userid]=${userid}" \
+      "enrolments[0][courseid]=${courseid}" >/dev/null; then
+    echo -e "${GREEN}✓${NC} Usuario $userid matriculado como $role_name en curso $courseid" >&2
+  else
+    echo -e "${RED}✗${NC} No se pudo matricular al usuario $userid en el curso $courseid" >&2
+    return 1
+  fi
 }
 
 # ---------------------------------------------------------------------------

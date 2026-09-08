@@ -128,6 +128,10 @@ if ($faltantes) {
     echo "   AVISO, no existen en esta version de Moodle: " . implode(', ', $faltantes) . "\n";
 }
 
+// Sin SMTP, el correo de bienvenida del curso hace fallar
+// enrol_manual_enrol_users con "Message was not sent." y no se matricula nadie.
+set_config('sendcoursewelcomemessage', 0, 'enrol_manual');
+
 echo "== 5. Permisos del admin ==\n";
 $admin = get_admin();
 $contexto = context_system::instance();
