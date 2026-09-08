@@ -260,6 +260,11 @@ function add_quiz($courseid, $section, $name, $intro, $weeks_due = 3) {
         'questionsperpage'        => 5,
         'navmethod'               => 'free',
         'browsersecurity'         => '-',
+        // mod/quiz/lib.php hace $quiz->password = $quiz->quizpassword;
+        // sin este campo la columna 'password' (NOT NULL) queda nula y el
+        // insert falla con "Column 'password' cannot be null".
+        'quizpassword'            => '',
+        'subnet'                  => '',
         'delay1'                  => 0,
         'delay2'                  => 0,
         'showuserpicture'         => 0,
@@ -836,11 +841,26 @@ foreach ($courses as $courseid => $coursename) {
     echo "\n📚 [$courseid] $coursename\n";
     echo str_repeat('─', 50) . "\n";
 
+    // El listado de cursos esta cableado (ids 2..5), pero seed.sh crea tantos
+    // como diga NUM_COURSES (3 por defecto). Si el curso no existe, saltarlo:
+    // antes se caia con "max(): Argument #1 must contain at least one element"
+    // y se perdia todo el contenido de los cursos siguientes.
+    if (!$DB->record_exists('course', ['id' => $courseid])) {
+        echo "  ⟳ El curso $courseid no existe en este Moodle, se omite.
+";
+        continue;
+    }
+
     // Obtener secciones
     $sections = get_sections($courseid);
     $sec = [];
     foreach ($sections as $s) {
         $sec[$s->section] = (int)$s->section;
+    }
+    if (empty($sec)) {
+        echo "  ⟳ El curso $courseid no tiene secciones, se omite.
+";
+        continue;
     }
     $max_sec = max(array_keys($sec));
 

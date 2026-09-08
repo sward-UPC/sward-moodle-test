@@ -1,0 +1,8 @@
+# Los scripts de shell y PHP se ejecutan dentro de contenedores Linux.
+# Sin esto, en Windows `core.autocrlf=true` los convierte a CRLF al hacer
+# checkout y bash falla con errores confusos como
+#   "set: pipefail: invalid option name"
+# porque interpreta el retorno de carro como parte del argumento.
+*.sh   text eol=lf
+*.php  text eol=lf
+Makefile text eol=lf
