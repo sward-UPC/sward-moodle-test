@@ -35,6 +35,14 @@ docker exec "$CONTENEDOR" sh -c \
   "sed -i 's/reverseproxy[[:space:]]*=[[:space:]]*false/reverseproxy = true/' /var/www/html/config.php"
 docker exec "$CONTENEDOR" php /var/www/html/admin/cli/purge_caches.php >/dev/null
 
+# Sin SMTP configurado, Moodle lanza "Message was not sent." al matricular (es el
+# correo de bienvenida del curso) y aborta la matricula entera. noemailever es
+# el ajuste estandar de entornos de prueba: descarta cualquier envio de correo.
+echo "==> Desactivando envio de correo (entorno de prueba)"
+docker exec "$CONTENEDOR" sh -c   "grep -q noemailever /var/www/html/config.php ||    sed -i '/^\$CFG->wwwroot/i \$CFG->noemailever = true;' /var/www/html/config.php"
+
+docker exec "$CONTENEDOR" php /var/www/html/admin/cli/purge_caches.php >/dev/null
+
 echo "==> Configurando web services y generando token"
 docker cp "$RAIZ/seed/setup_webservices.php" "$CONTENEDOR:/tmp/setup_webservices.php"
 SALIDA="$(docker exec "$CONTENEDOR" php /tmp/setup_webservices.php)"
