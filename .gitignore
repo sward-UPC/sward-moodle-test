@@ -12,3 +12,7 @@ seed/.env
 data/
 volumes/
 *.log
+
+# Estado y credenciales generados por los seeders
+seed/.env
+seed/.seed-state.json
