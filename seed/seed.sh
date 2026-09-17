@@ -270,7 +270,11 @@ if [ "$SKIP_USERS" = "0" ]; then
   echo -e "${BLUE}⟳ Creando ${NUM_TEACHERS} docente(s)...${NC}"
   for i in $(seq 1 "$NUM_TEACHERS"); do
     num=$(printf "%02d" "$i")
-    tid="$(create_user "docente${num}" "Docente${num}" "Apellido${num}" "docente${num}@sward.test")"
+# El dominio .test esta reservado (RFC 2606) y la validacion de correo de
+# ms-usuarios lo rechaza: con @sward.test nadie puede registrarse en SWARD con
+# su correo de Moodle, que es justo lo que exige el registro. Por eso el dominio
+# de prueba es sward-test.com.
+    tid="$(create_user "docente${num}" "Docente${num}" "Apellido${num}" "docente${num}@sward-test.com")"
     TEACHERS+=("$tid")
   done
   echo ""
@@ -278,7 +282,7 @@ if [ "$SKIP_USERS" = "0" ]; then
   echo -e "${BLUE}⟳ Creando ${NUM_STUDENTS} estudiante(s)...${NC}"
   for i in $(seq 1 "$NUM_STUDENTS"); do
     num=$(printf "%02d" "$i")
-    sid="$(create_user "estudiante${num}" "Estudiante${num}" "Apellido${num}" "estudiante${num}@sward.test")"
+    sid="$(create_user "estudiante${num}" "Estudiante${num}" "Apellido${num}" "estudiante${num}@sward-test.com")"
     STUDENTS+=("$sid")
     if [ $((i % 5)) -eq 0 ]; then echo "  ... $i/${NUM_STUDENTS}"; fi
   done
