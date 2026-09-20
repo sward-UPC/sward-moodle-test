@@ -54,6 +54,12 @@ services:
       - MOODLE_EMAIL=admin@sward.test
       # --- URL externa (local): debe coincidir con el puerto publicado (8090) ---
       - SITE_URL=http://localhost:8090
+      # El contenedor sirve en 8080 y se publica en 8090. Sin reverseproxy Moodle
+      # reconstruye la URL con el puerto interno, no coincide con su wwwroot y
+      # responde 303 hacia si mismo: no carga ninguna pagina ni llamada REST.
+      # seed/setup.sh ya lo corregia, pero la imagen regenera config.php en cada
+      # arranque, asi que el arreglo se perdia al reiniciar. Aqui es permanente.
+      - REVERSEPROXY=true
     volumes:
       - moodledata_data:/var/www/moodledata
       - moodlehtml_data:/var/www/html
