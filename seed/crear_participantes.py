@@ -314,8 +314,11 @@ def main() -> None:
             w.writerows(temporales)
         print(f"Contraseñas temporales en {archivo}: entrégalas una por una y "
               "borra el archivo al terminar.")
+    elif any(r["cuenta"] == "creado" for r in resultado):
+        print("Moodle enviará a cada persona nueva su contraseña por correo, en los "
+              "próximos minutos (lo hace su tarea programada).")
     else:
-        print("Moodle enviará a cada persona nueva su contraseña por correo.")
+        print("No había cuentas nuevas: nadie recibe correo.")
 
 
 if __name__ == "__main__":
