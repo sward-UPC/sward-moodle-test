@@ -65,7 +65,7 @@ services:
       - moodlehtml_data:/var/www/html
     healthcheck:
       # La imagen alpine trae wget; no asume curl.
-      test: ["CMD-SHELL", "wget -q -O /dev/null http://localhost:8080/login/index.php || exit 1"]
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:8080/login/index.php || exit 1"]
       interval: 30s
       timeout: 15s
       retries: 30
