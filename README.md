@@ -29,7 +29,6 @@ Incluye:
 .
 ├── docker-compose.yml                # Moodle 4.5 LTS + MariaDB con healthchecks y volúmenes
 ├── Makefile                          # make up | down | wait | seed | token | clean
-├── coolify.json                      # descriptor de despliegue en Coolify (Moodle de pruebas remoto)
 │
 ├── seed/
 │   ├── seed.sh                       # crea cursos/docentes/estudiantes + matrículas (REST)
@@ -65,7 +64,7 @@ Incluye:
 - Docker + Docker Compose v2 (`docker compose version`)
 - `curl` y `jq` (para el seed y la verificación)
 - Python 3.11+ con `requests` (para los scripts `*.py`)
-- Acceso a la instancia de Moodle (local con docker, o la remota en Coolify)
+- Acceso a la instancia de Moodle (la que se levanta con docker en este repositorio)
 
 ---
 
