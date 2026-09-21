@@ -16,3 +16,9 @@ volumes/
 # Estado y credenciales generados por los seeders
 seed/.env
 seed/.seed-state.json
+
+# Datos de participantes reales: nunca al repositorio
+seed/participantes/
+*respuestas*.csv
+resultado_inscripcion*.csv
+contrasenas_temporales*.csv
