@@ -137,8 +137,12 @@ curl -s "http://localhost:8090/webservice/rest/server.php?wstoken=$TOKEN&moodlew
 
 ## 3. Poblar Moodle
 
-El poblado se hace en capas. Según lo que necesites, usa una o varias de estas
-herramientas:
+Para la validación del OE4 el poblado es uno solo: `make cursos` y `make sitio`,
+que cargan Estadística y Matemática Financiera y dejan el sitio listo para los
+participantes. Lo que documentan 3.1 a 3.3 son los seeders del MVP (cursos de
+software, usuarios `estudianteNN`), que **ya no se usan**: se conservan como
+histórico del piloto y crean datos que no pertenecen al estudio. El contenido
+de la validación se describe en `seed/validacion/README.md`.
 
 ### 3.1 Estructura base — usuarios, cursos y matrículas (`seed/seed.sh`)
 
@@ -287,7 +291,8 @@ make up        # levantar Moodle + MariaDB
 make wait      # esperar bootstrap
 make ps        # estado / health
 make logs      # ver logs de Moodle
-make seed      # cargar datos de prueba (requiere seed/.env con el token)
+make cursos    # cargar Estadistica y Matematica Financiera
+make sitio     # aplicar los ajustes del sitio para los participantes
 make token     # recordar cómo generar el token (paso manual en la UI)
 make down      # parar (conserva datos/volúmenes)
 make clean     # parar y BORRAR volúmenes (reset total)
