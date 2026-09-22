@@ -345,6 +345,13 @@ foreach ($cursos as $c) {
             'summary' => $c['presentacion'], 'summaryformat' => FORMAT_HTML]);
     }
     echo "  Portada: " . portada($curso, $c['imagen_png'] ?? null) . "\n";
+    // El foro de novedades se llama «Announcements»/«Avisos» según el idioma con
+    // que se creó el curso; se fija para que diga lo mismo en local y en la nube.
+    $novedades = $DB->get_record_sql(
+        "SELECT f.id FROM {forum} f WHERE f.course = ? AND f.type = 'news'", [$curso->id]);
+    if ($novedades) {
+        $DB->set_field('forum', 'name', 'Avisos del profesor', ['id' => $novedades->id]);
+    }
     if (!empty($c['foro'])) {
         echo "  Foro «{$c['foro']['nombre']}»: " . crear_foro($curso, $c['foro']) . "\n";
     }
