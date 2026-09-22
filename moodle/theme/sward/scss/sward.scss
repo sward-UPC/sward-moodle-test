@@ -137,12 +137,16 @@ a:focus-visible {
 }
 
 // ── Lista de participantes (docente) ────────────────────────────────────────
-#page-user-index .initialbar {
-  display: none; // con 30 personas estorba; el filtro por palabra basta
+// La barra de iniciales (A, B, C…) aparece en participantes, en el boletín y en
+// el reporte de finalización. Con 30 personas estorba y cada pantalla ya trae
+// su buscador.
+.initialbar {
+  // !important: Moodle le pone la clase d-flex de Bootstrap, que ya lo lleva.
+  display: none !important;
 }
 
-#page-user-index #participantsform,
-#page-user-index .userlist {
+#page-course-view-participants #participantsform,
+#page-course-view-participants .userlist {
   background: #fff;
   border: 1px solid $sward-linea;
   border-radius: 14px;
@@ -150,7 +154,7 @@ a:focus-visible {
   padding: 0.75rem 1rem 0.25rem;
 }
 
-#page-user-index table th {
+#page-course-view-participants table th {
   font-size: 0.8rem;
   letter-spacing: 0.02em;
   text-transform: none;
@@ -158,11 +162,11 @@ a:focus-visible {
   border-top: 0;
 }
 
-#page-user-index table tbody tr:hover {
+#page-course-view-participants table tbody tr:hover {
   background-color: $sward-primario-suave;
 }
 
-#page-user-index .userpicture,
+#page-course-view-participants .userpicture,
 .activity-item .activityiconcontainer img {
   border-radius: 10px; // cuadrado redondeado, no círculo
 }
@@ -217,7 +221,7 @@ a:focus-visible {
 // El botón flotante de ayuda de Moodle (abajo a la derecha) lleva a la
 // documentación del producto: al participante no le sirve y tapa contenido.
 .btn-footer-popover {
-  display: none;
+  display: none !important;
 }
 
 // ── Ingreso ─────────────────────────────────────────────────────────────────
