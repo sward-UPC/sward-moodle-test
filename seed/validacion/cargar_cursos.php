@@ -100,15 +100,22 @@ function crear_enlace(object $curso, int $seccion, array $e, int $display): stri
  * (sin borrador) y se da por completada al entregar, que es lo que abre la
  * solución. Sin avisos por correo al profesor ni al estudiante.
  */
+/** Descripción de la práctica: la línea de resumen y debajo los ejercicios. */
+function texto_practica(array $p): string {
+    return '<p>' . $p['descripcion'] . '</p>' . $p['enunciado'];
+}
+
 function crear_practica(object $curso, int $seccion, array $p): int {
     $existe = modulo_existente($curso->id, 'assign', $p['nombre']);
     if ($existe) {
         return (int) $existe->cmid;
     }
     $info = create_module(base_modulo($curso, $seccion, 'assign', $p['nombre'], [
-        'intro' => '<p>' . $p['descripcion'] . '</p>',
-        'introeditor' => ['text' => '<p>' . $p['descripcion'] . '</p>', 'format' => FORMAT_HTML, 'itemid' => 0],
-        'activityeditor' => ['text' => $p['enunciado'], 'format' => FORMAT_HTML, 'itemid' => 0],
+        // Los ejercicios van en la descripción. Las «instrucciones» de la tarea
+        // (el campo activity) solo se ven en la pantalla de entrega: el
+        // estudiante abría la práctica y no encontraba ningún ejercicio.
+        'intro' => texto_practica($p),
+        'introeditor' => ['text' => texto_practica($p), 'format' => FORMAT_HTML, 'itemid' => 0],
         'alwaysshowdescription' => 1, 'submissiondrafts' => 0, 'requiresubmissionstatement' => 0,
         'sendnotifications' => 0, 'sendlatenotifications' => 0, 'sendstudentnotifications' => 0,
         'duedate' => 0, 'allowsubmissionsfromdate' => 0, 'cutoffdate' => 0, 'gradingduedate' => 0,
@@ -179,20 +186,23 @@ function crear_foro(object $curso, array $f): string {
  * $progreso: 'ver' (páginas: al abrirlas), 'nota' (quizzes: al recibir nota),
  * 'entrega' (práctica: al entregarla; abre la solución) o 'no' (opcional).
  */
-function presentar(object $curso, string $modulo, string $nombre, string $descripcion, string $progreso): void {
+function presentar(object $curso, string $modulo, string $nombre, string $descripcion, string $progreso,
+                   bool $parrafo = true): void {
     global $DB;
     $m = modulo_existente($curso->id, $modulo, $nombre);
     if (!$m) {
         return;
     }
     if ($modulo === 'assign') {
-        // Versiones anteriores dejaban los ejercicios en la descripción.
-        $a = $DB->get_record('assign', ['id' => $m->instancia], 'id, intro, activity', MUST_EXIST);
-        if (trim((string) $a->activity) === '') {
-            $DB->update_record('assign', (object) ['id' => $a->id, 'activity' => $a->intro, 'activityformat' => FORMAT_HTML]);
+        // Versiones anteriores escondían los ejercicios en las instrucciones.
+        $a = $DB->get_record('assign', ['id' => $m->instancia], 'id, activity', MUST_EXIST);
+        if (trim((string) $a->activity) !== '') {
+            $DB->update_record('assign', (object) ['id' => $a->id, 'activity' => '', 'activityformat' => FORMAT_HTML]);
+            echo "      los ejercicios vuelven a la descripción\n";
         }
     }
-    $DB->update_record($modulo, (object) ['id' => $m->instancia, 'intro' => "<p>$descripcion</p>", 'introformat' => FORMAT_HTML]);
+    $texto = $parrafo ? "<p>$descripcion</p>" : $descripcion;
+    $DB->update_record($modulo, (object) ['id' => $m->instancia, 'intro' => $texto, 'introformat' => FORMAT_HTML]);
     if ($modulo === 'quiz') {
         // El quiz crea su ítem de calificación oculto (queda así aunque las
         // opciones de revisión muestren la nota): el estudiante no vería sus
@@ -449,7 +459,8 @@ foreach ($cursos as $c) {
             presentar($curso, 'url', $t['video']['nombre'], $t['video']['descripcion'], 'no');
         }
         if (!empty($t['practica'])) {
-            presentar($curso, 'assign', $t['practica']['nombre'], $t['practica']['descripcion'], 'entrega');
+            presentar($curso, 'assign', $t['practica']['nombre'], texto_practica($t['practica']),
+                'entrega', false);
             presentar($curso, 'page', $t['practica']['solucion_nombre'], $t['practica']['solucion_descripcion'], 'no');
         }
         foreach ($t['quizzes'] as $q) {

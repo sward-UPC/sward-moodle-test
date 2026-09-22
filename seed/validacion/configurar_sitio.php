@@ -27,6 +27,8 @@
  *   selector de vistas, y el menú del usuario con solo su perfil y sus notas.
  * - Todo en español: la interfaz venía en inglés y el contenido en español
  * - El boletín del estudiante con dos columnas: la actividad y su nota
+ * - Sin comentarios en las entregas, acuses de recibo ni publicidad del editor
+ * - «Quiz», no «cuestionario», y un botón que dice lo que hace
  * - La categoría de los cursos con nombre propio, no «Category 1»
  * - Sin «Modo de edición» en el perfil: los participantes no acomodan bloques
  * - Los estudiantes no ven la lista de participantes (nombres, roles y último
@@ -91,6 +93,38 @@ unassign_capability('moodle/course:viewparticipants', $estudiante->id, context_s
 $autenticado = $DB->get_record('role', ['shortname' => 'user'], '*', MUST_EXIST);
 unassign_capability('moodle/user:manageownblocks', $autenticado->id, context_system::instance()->id);
 echo "  estudiantes: sin lista de participantes ni edición del perfil\n";
+// Las actividades se llaman «Quiz 1 — …» en todo el material, pero Moodle las
+// llamaba «cuestionario», y su botón principal decía «Intento de cuestionario»,
+// que se lee como un sustantivo y no como la acción que es. Los cambios de
+// idioma propios van a moodledata, igual que los haría la herramienta de
+// personalización del idioma.
+$carpeta = $CFG->langlocalroot . '/es_local';
+make_writable_directory($carpeta);
+$propias = [
+    'attemptquiz' => 'Comenzar el quiz',
+    'modulename' => 'Quiz',
+    'modulenameplural' => 'Quizzes',
+    'pluginname' => 'Quiz',
+];
+$lineas = "<?php\n// Cambios de idioma propios de SWARD. No editar a mano: los escribe\n"
+    . "// seed/validacion/configurar_sitio.php.\n";
+foreach ($propias as $clave => $texto) {
+    $lineas .= '$string[' . var_export($clave, true) . '] = ' . var_export($texto, true) . ";\n";
+}
+file_put_contents($carpeta . '/quiz.php', $lineas);
+get_string_manager()->reset_caches();
+echo "  idioma: " . count($propias) . " palabras propias del quiz\n";
+
+// Comentarios en las entregas: otro canal de conversación que el estudio no usa
+// y que en la práctica guiada solo añade ruido bajo el enunciado.
+set_config('usecomments', 0);
+// Acuse de recibo de cada práctica entregada: la pantalla ya dice «Hecho», y
+// con 12 prácticas por estudiante serían cientos de avisos sin información.
+set_config('submissionreceipts', 0, 'assign');
+// El editor de texto anunciaba «Build with TinyMCE» debajo del cuadro.
+set_config('branding', 0, 'editor_tiny');
+echo "  entregas: sin comentarios, sin acuse de recibo, sin publicidad del editor\n";
+
 // Boletín de notas del estudiante. Traía siete columnas —ponderación, rango
 // («0–20»), porcentaje, aporte al total— que aquí no dicen nada: los quizzes no
 // cuentan para su nota del curso. Queda la actividad y la nota.
