@@ -25,6 +25,7 @@
  *   quedan dentro de Moodle (campana), no por correo.
  * - Menos ruido para el participante: la lista de cursos sin categorías ni
  *   selector de vistas, y el menú del usuario con solo su perfil y sus notas.
+ * - La categoría de los cursos con nombre propio, no «Category 1»
  * - Sin «Modo de edición» en el perfil: los participantes no acomodan bloques
  * - Los estudiantes no ven la lista de participantes (nombres, roles y último
  *   acceso de sus compañeros): no la necesitan y expone datos de los demás.
@@ -87,6 +88,11 @@ unassign_capability('moodle/course:viewparticipants', $estudiante->id, context_s
 $autenticado = $DB->get_record('role', ['shortname' => 'user'], '*', MUST_EXIST);
 unassign_capability('moodle/user:manageownblocks', $autenticado->id, context_system::instance()->id);
 echo "  estudiantes: sin lista de participantes ni edición del perfil\n";
+// Los cursos van en la categoría que Moodle crea al instalar, llamada
+// «Category 1»; ese nombre asoma en la ruta de navegación.
+$DB->set_field('course_categories', 'name', 'Cursos SWARD', ['id' => 1]);
+echo "  categoría 1: Cursos SWARD\n";
+
 set_config('enabled', 0, 'core_competency');
 echo "  competencias: desactivadas\n";
 
