@@ -3,8 +3,9 @@
 SHELL := /bin/bash
 
 MOODLE_URL ?= http://localhost:8090
+MOODLE_CT ?= sward-moodle-app
 
-.PHONY: help up down restart logs ps wait config seed token clean
+.PHONY: help up down restart logs ps wait config cursos sitio token clean
 
 help: ## Muestra esta ayuda
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
@@ -35,8 +36,16 @@ wait: ## Espera a que Moodle termine el bootstrap (puede tardar minutos)
 	done; \
 	echo ""; echo "Moodle esta listo: $(MOODLE_URL)"
 
-seed: ## Carga datos de prueba via REST (requiere seed/.env con el token)
-	./seed/seed.sh
+cursos: ## Carga Estadistica y Matematica Financiera (idempotente)
+	python seed/validacion/generar.py
+	docker cp seed/validacion/salida/cursos.json $(MOODLE_CT):/tmp/cursos.json
+	docker cp seed/validacion/cargar_cursos.php $(MOODLE_CT):/tmp/cargar_cursos.php
+	docker exec $(MOODLE_CT) php /tmp/cargar_cursos.php /tmp/cursos.json
+
+sitio: ## Aplica los ajustes del sitio para los participantes
+	docker cp seed/validacion/configurar_sitio.php $(MOODLE_CT):/tmp/configurar_sitio.php
+	docker exec $(MOODLE_CT) php /tmp/configurar_sitio.php
+	docker exec $(MOODLE_CT) php /var/www/html/admin/cli/purge_caches.php
 
 token: ## Recuerda como generar el token (paso manual en la UI)
 	@echo "El token se genera desde la UI de Moodle:"
