@@ -26,6 +26,7 @@
  * - Menos ruido para el participante: la lista de cursos sin categorías ni
  *   selector de vistas, y el menú del usuario con solo su perfil y sus notas.
  * - Todo en español: la interfaz venía en inglés y el contenido en español
+ * - El boletín del estudiante con dos columnas: la actividad y su nota
  * - La categoría de los cursos con nombre propio, no «Category 1»
  * - Sin «Modo de edición» en el perfil: los participantes no acomodan bloques
  * - Los estudiantes no ven la lista de participantes (nombres, roles y último
@@ -90,6 +91,24 @@ unassign_capability('moodle/course:viewparticipants', $estudiante->id, context_s
 $autenticado = $DB->get_record('role', ['shortname' => 'user'], '*', MUST_EXIST);
 unassign_capability('moodle/user:manageownblocks', $autenticado->id, context_system::instance()->id);
 echo "  estudiantes: sin lista de participantes ni edición del perfil\n";
+// Boletín de notas del estudiante. Traía siete columnas —ponderación, rango
+// («0–10»), porcentaje, aporte al total— que aquí no dicen nada: los quizzes no
+// cuentan para su nota del curso. Queda la actividad y la nota.
+foreach ([
+    'showweight' => 0,
+    'showrange' => 0,
+    'showpercentage' => 0,
+    'showcontributiontocoursetotal' => 0,
+    'showfeedback' => 0,
+    'showaverage' => 0,
+    'showrank' => 0,
+    'showlettergrade' => 0,
+    'showgrade' => 1,
+] as $ajuste => $valor) {
+    set_config('grade_report_user_' . $ajuste, $valor);
+}
+echo "  boletín del estudiante: actividad y nota\n";
+
 // Idioma. Moodle se instala solo con el inglés; el paquete español se baja de
 // download.moodle.org la primera vez. Sin selector de idioma ni detección por
 // el navegador: todos los participantes ven lo mismo.
