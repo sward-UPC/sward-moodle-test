@@ -87,13 +87,13 @@ GUIA_DOCENTE = {
 <h4>Dos cosas que le pedimos</h4>
 <ol>
 <li><strong>Suscríbase al foro «Dudas del curso»</strong> (entre al foro y pulse «Suscribirse a este foro»), para recibir por correo lo que pregunten sus estudiantes. Está en esta misma sección.</li>
-<li><strong>Si encuentra un error en una pregunta, no la edite aquí.</strong> Anótelo en el documento de revisión que le enviamos y nos avisa: el banco de preguntas se genera desde el proyecto, y una edición manual se perdería en la siguiente carga. Además, cambiar una pregunta después de que alguien la rindió afecta a los datos del estudio.</li>
+<li><strong>Si encuentra un error en una pregunta, anótelo en el documento de revisión que le enviamos</strong> y nos avisa. Su cuenta ve el curso pero no lo modifica, y es a propósito: el material se genera desde el proyecto, así que una edición hecha aquí se perdería en la siguiente carga, y cambiar una pregunta después de que alguien la rindió alteraría los datos del estudio.</li>
 </ol>
 
 <h4>Lo que no hay que cambiar</h4>
 <p>Los <strong>nombres de los temas</strong> (las secciones del curso) son la clave con que el sistema identifica cada tema: si se renombran después de que empiecen los estudiantes, el modelo deja de reconocerlos.</p>
 
-<p>Por eso mismo, en «Reutilización de curso» usted puede hacer una copia de seguridad, pero <strong>reiniciar, restaurar e importar están bloqueados</strong>: cualquiera de los tres borraría los intentos de sus estudiantes, que son los datos del estudio.</p>
+<p>Por la misma razón, su cuenta no tiene el modo de edición ni las opciones de reiniciar, restaurar o importar el curso: cualquiera de ellas podría borrar los intentos de sus estudiantes, que son los datos del estudio. Si necesita agregar algo al curso, escríbanos y lo hacemos nosotros.</p>
 
 <p>Cualquier duda, escríbanos: el contacto del proyecto está en el consentimiento informado que firmaron los participantes.</p>
 """,
