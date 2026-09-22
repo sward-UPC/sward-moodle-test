@@ -30,6 +30,9 @@ require_once($CFG->dirroot . '/question/format/gift/format.php');
 require_once($CFG->libdir . '/resourcelib.php');
 require_once($CFG->libdir . '/completionlib.php');
 require_once($CFG->dirroot . '/mod/forum/lib.php');
+require_once($CFG->dirroot . '/mod/quiz/lib.php');
+require_once($CFG->dirroot . '/question/engine/lib.php');
+require_once($CFG->libdir . '/gradelib.php');
 
 \core\session\manager::set_user(get_admin());
 
@@ -171,6 +174,17 @@ function presentar(object $curso, string $modulo, string $nombre, string $descri
         }
     }
     $DB->update_record($modulo, (object) ['id' => $m->instancia, 'intro' => "<p>$descripcion</p>", 'introformat' => FORMAT_HTML]);
+    if ($modulo === 'quiz') {
+        // El quiz crea su ítem de calificación oculto (queda así aunque las
+        // opciones de revisión muestren la nota): el estudiante no vería sus
+        // notas en el boletín ni su progreso en la tarjeta del curso.
+        $item = grade_item::fetch(['courseid' => $curso->id, 'itemtype' => 'mod',
+            'itemmodule' => 'quiz', 'iteminstance' => $m->instancia]);
+        if ($item && $item->is_hidden()) {
+            $item->set_hidden(0, true);
+            echo "      nota del quiz visible en el boletín\n";
+        }
+    }
     $cm = ['id' => $m->cmid, 'showdescription' => 1, 'completion' => COMPLETION_TRACKING_AUTOMATIC,
            'completionview' => 0, 'completiongradeitemnumber' => null, 'completionpassgrade' => 0];
     if ($progreso === 'ver') {

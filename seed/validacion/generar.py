@@ -46,7 +46,8 @@ PRESENTACION = """
 <li><strong>Haz la práctica guiada</strong>: al entregarla se abre la solución para que compares.</li>
 <li><strong>Rinde los tres quizzes</strong> (básico, intermedio y aplicado): cuatro preguntas, un solo intento, unos cinco minutos cada uno.</li>
 </ol>
-<p><strong>Para el estudio cuentan los quizzes.</strong> No afectan tu nota del curso: nos interesa cómo aprendes, no cuánto sabes hoy. Resuélvelos por tu cuenta, sin buscar las respuestas.</p>
+<p><strong>Para el estudio cuentan los quizzes</strong>, y te pedimos que los hagas todos: son 18 en este curso, de cinco a ocho minutos cada uno. Puedes repartirlos en varios días. No afectan tu nota del curso: nos interesa cómo aprendes, no cuánto sabes hoy. Resuélvelos por tu cuenta, sin buscar las respuestas.</p>
+<p>El video, la práctica y el recurso para practicar más son opcionales: están por si quieres reforzar el tema.</p>
 <p>En las preguntas numéricas escribe solo el número, sin símbolos ni separador de miles, con punto decimal (por ejemplo, 1234.56).</p>
 <p>¿Dudas? Escríbelas en el foro <em>Dudas del curso</em>.</p>
 """
@@ -185,8 +186,11 @@ def generar_json() -> Path:
                 },
                 "quizzes": [
                     {"nombre": nombre_quiz(tema, k), "nivel": NIVELES[k - 1],
+                     # El separador de miles sí rompe la corrección («1.234,56» se lee
+                     # como 1.23456), así que el aviso va también antes de empezar.
                      "descripcion": (f"Quiz {NIVELES[k - 1]} · 4 preguntas · 1 intento · unos 5 min · "
-                                     "no afecta tu nota del curso"),
+                                     "no afecta tu nota del curso. En las respuestas numéricas escribe "
+                                     "solo el número, sin separador de miles y con punto decimal: 1234.56"),
                      "gift": gift_quiz(nombre_quiz(tema, k), quiz)}
                     for k, quiz in enumerate(t["quizzes"], 1)
                 ],
