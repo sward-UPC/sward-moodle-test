@@ -167,6 +167,34 @@ a:focus-visible {
   border-radius: 10px; // cuadrado redondeado, no círculo
 }
 
+// ── Pantallas del profesor ──────────────────────────────────────────────────
+// Boletín de notas y reporte de finalización: tablas anchas (18 quizzes por
+// curso). Encabezados más compactos, fila resaltada al pasar el cursor y la
+// columna del estudiante acotada para que el nombre no empuje la tabla.
+#page-grade-report-grader-index,
+#page-report-progress-index {
+  .cell,
+  td,
+  th {
+    font-size: 0.86rem;
+  }
+
+  tbody tr:hover td {
+    background-color: $sward-primario-suave;
+  }
+
+  .cell.user,
+  .user .cell,
+  td.cell.c0 {
+    max-width: 18rem;
+  }
+}
+
+#page-grade-report-grader-index .gradeitemheader {
+  font-weight: 500;
+  line-height: 1.25;
+}
+
 // ── Quiz ────────────────────────────────────────────────────────────────────
 .path-mod-quiz .que {
   border: 1px solid $sward-linea;

@@ -67,6 +67,36 @@ def minutos_de_lectura(html_texto: str) -> int:
     return max(2, round(palabras / 150))
 
 
+# Guía del profesor: una página oculta a los estudiantes, dentro del curso, con
+# lo que necesita saber para acompañar la fase 1 sin romper nada.
+GUIA_DOCENTE = {
+    "nombre": "Guía para el profesor (no la ven los estudiantes)",
+    "contenido": """
+<p>Esta página solo la ve usted y el equipo del proyecto. Los estudiantes no la ven.</p>
+
+<h4>Qué hacen sus estudiantes</h4>
+<p>Cada tema tiene un resumen, un ejemplo resuelto y tres quizzes de cuatro preguntas (básico, intermedio y aplicado), de un solo intento y calificados sobre 10. <strong>Los quizzes no afectan la nota de su curso</strong>: son los datos con que el sistema aprende. El video, la práctica guiada y el recurso externo son opcionales.</p>
+
+<h4>Dónde ver el avance</h4>
+<ul>
+<li><strong>Reportes → Finalización de actividad</strong>: una tabla de estudiantes por actividad, con una marca por cada cosa completada. Es la vista más rápida para saber quién va al día.</li>
+<li><strong>Calificaciones</strong>: las notas de los 18 quizzes del curso, con el promedio por quiz al final. Se descarga en Excel.</li>
+<li>Dentro de un quiz, <strong>Resultados</strong>: quién lo rindió, con qué nota y cuánto demoró.</li>
+</ul>
+
+<h4>Dos cosas que le pedimos</h4>
+<ol>
+<li><strong>Suscríbase al foro «Dudas del curso»</strong> (entre al foro y elija «Suscribirme»), para recibir por correo lo que pregunten sus estudiantes. Está en esta misma sección.</li>
+<li><strong>Si encuentra un error en una pregunta, no la edite aquí.</strong> Anótelo en el documento de revisión que le enviamos y nos avisa: el banco de preguntas se genera desde el proyecto, y una edición manual se perdería en la siguiente carga. Además, cambiar una pregunta después de que alguien la rindió afecta a los datos del estudio.</li>
+</ol>
+
+<h4>Lo que no hay que cambiar</h4>
+<p>Los <strong>nombres de los temas</strong> (las secciones del curso) son la clave con que el sistema identifica cada tema: si se renombran después de que empiecen los estudiantes, el modelo deja de reconocerlos.</p>
+
+<p>Cualquier duda, escríbanos: el contacto del proyecto está en el consentimiento informado que firmaron los participantes.</p>
+""",
+}
+
 FORO = {
     "nombre": "Dudas del curso",
     "intro": ("<p>Escribe aquí tus dudas sobre los temas o los quizzes; el profesor y tus compañeros pueden "
@@ -207,7 +237,7 @@ def generar_json() -> Path:
             "descripcion": RESUMEN_CURSO.get(curso["corto"], curso["descripcion"]),
             "presentacion": PRESENTACION.format(intro=INTRO_CURSO.get(curso["corto"], "")).strip(),
             "imagen_png": base64.b64encode(imagen.read_bytes()).decode() if imagen.exists() else None,
-            "foro": FORO, "temas": temas,
+            "foro": FORO, "guia_docente": GUIA_DOCENTE, "temas": temas,
         })
     SALIDA.mkdir(exist_ok=True)
     ruta = SALIDA / "cursos.json"

@@ -137,6 +137,22 @@ function crear_solucion(object $curso, int $seccion, array $p, int $cmpractica):
     return 'creada';
 }
 
+/** Guía del profesor: página de la sección inicial, oculta a los estudiantes. */
+function crear_guia(object $curso, array $g): string {
+    $existe = modulo_existente($curso->id, 'page', $g['nombre']);
+    if ($existe) {
+        return 'ya existía';
+    }
+    $info = create_module(base_modulo($curso, 0, 'page', $g['nombre'], [
+        'content' => $g['contenido'], 'contentformat' => FORMAT_HTML,
+        'display' => 0, 'displayoptions' => serialize(['printintro' => 0, 'printlastmodified' => 0]),
+        'printheading' => 1, 'printintro' => 0, 'printlastmodified' => 0, 'revision' => 1,
+        'visible' => 0, 'visibleoncoursepage' => 1,
+    ]));
+    set_coursemodule_visible($info->coursemodule, 0);
+    return 'creada (oculta)';
+}
+
 /** Foro de dudas en la sección general. Suscripción opcional: sin avalancha de correos. */
 function crear_foro(object $curso, array $f): string {
     if (modulo_existente($curso->id, 'forum', $f['nombre'])) {
@@ -354,6 +370,9 @@ foreach ($cursos as $c) {
     }
     if (!empty($c['foro'])) {
         echo "  Foro «{$c['foro']['nombre']}»: " . crear_foro($curso, $c['foro']) . "\n";
+    }
+    if (!empty($c['guia_docente'])) {
+        echo "  Guía del profesor: " . crear_guia($curso, $c['guia_docente']) . "\n";
     }
 
     foreach ($c['temas'] as $i => $t) {
