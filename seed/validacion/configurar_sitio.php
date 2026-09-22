@@ -1,0 +1,71 @@
+<?php
+/**
+ * SWARD — Ajustes del sitio Moodle para los participantes del estudio.
+ *
+ * Idempotente: se puede correr las veces que haga falta. Lo aplica el arranque
+ * del Moodle de la nube (sward-infra, MoodleStack) y se corre a mano en local:
+ *
+ *   docker cp seed/validacion/configurar_sitio.php sward-moodle-app:/tmp/
+ *   docker exec sward-moodle-app php /tmp/configurar_sitio.php
+ *
+ * Cada ajuste responde a un problema visto al probar el Moodle local
+ * (22 de septiembre de 2026):
+ *
+ * - Entrada con el correo: el usuario de un participante es la parte local de
+ *   su correo y lo natural es escribir el correo completo.
+ * - Sin botón de invitado: los cursos no admiten invitados.
+ * - Hora de Lima: la imagen trae Europe/London y los plazos se verían corridos.
+ * - Correos ocultos entre participantes.
+ * - Al entrar, «Mis cursos»; sin Tablero ni mensajería entre participantes:
+ *   un participante solo necesita sus dos cursos.
+ * - Sin correos por cada quiz: Moodle manda por defecto una confirmación por
+ *   cada intento enviado. Con 36 quizzes y 30 estudiantes serían más de mil
+ *   correos desde la cuenta de Gmail del proyecto, que corta el envío hacia los
+ *   500 diarios y es la misma que manda las contraseñas. Las confirmaciones
+ *   quedan dentro de Moodle (campana), no por correo.
+ * - Tema SWARD (moodle/theme/sward), si está instalado.
+ */
+
+define('CLI_SCRIPT', true);
+require('/var/www/html/config.php');
+require_once($CFG->libdir . '/adminlib.php');
+
+$ajustes = [
+    'authloginviaemail' => 1,
+    'guestloginbutton' => 0,
+    'timezone' => 'America/Lima',
+    'defaultpreference_maildisplay' => 0,
+    'defaulthomepage' => HOMEPAGE_MYCOURSES,
+    'enabledashboard' => 0,
+    'messaging' => 0,
+];
+foreach ($ajustes as $nombre => $valor) {
+    $antes = get_config('core', $nombre);
+    set_config($nombre, $valor);
+    printf("  %-32s %s%s\n", $nombre, $valor, ((string) $antes === (string) $valor) ? '' : "  (antes: $antes)");
+}
+
+// Notificaciones que no deben salir por correo: quedan en la campana de Moodle
+// y el participante no puede volver a activarlas por correo (bloqueado).
+$avisos = [
+    'mod_quiz' => ['confirmation', 'submission', 'attempt_grading_complete', 'attempt_overdue', 'quiz_open_soon'],
+    'moodle' => ['newlogin'],
+];
+foreach ($avisos as $componente => $nombres) {
+    foreach ($nombres as $nombre) {
+        set_config("message_provider_{$componente}_{$nombre}_enabled", 'popup', 'message');
+        set_config("email_provider_{$componente}_{$nombre}_locked", 1, 'message');
+        echo "  aviso {$componente}/{$nombre}: solo en Moodle\n";
+    }
+}
+
+if (core_component::get_plugin_directory('theme', 'sward')) {
+    set_config('theme', 'sward');
+    theme_reset_all_caches();
+    echo "  tema: sward\n";
+} else {
+    echo "  tema: sward no está instalado (moodle/theme/sward); se deja el actual\n";
+}
+
+purge_all_caches();
+echo "Sitio configurado para los participantes.\n";
