@@ -50,7 +50,11 @@ import urllib.request
 from dataclasses import dataclass
 from pathlib import Path
 
-ROL_DOCENTE = 3  # editingteacher
+# Profesor sin permiso de edición: publica avisos, responde el foro y ve notas,
+# reportes y la guía, pero no puede mover, editar ni borrar el contenido. El
+# banco de preguntas se genera desde el proyecto (banco.py) y una edición manual
+# se perdería en la siguiente carga, además de alterar los datos del estudio.
+ROL_DOCENTE = 4  # teacher (sin edición)
 ROL_ESTUDIANTE = 5  # student
 
 AQUI = Path(__file__).resolve().parent
