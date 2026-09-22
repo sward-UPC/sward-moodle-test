@@ -60,6 +60,17 @@ services:
       # seed/setup.sh ya lo corregia, pero la imagen regenera config.php en cada
       # arranque, asi que el arreglo se perdia al reiniciar. Aqui es permanente.
       - REVERSEPROXY=true
+      # --- Correo: todo a Mailpit (sward-local, http://localhost:8025) ---
+      # La imagen reescribe la configuración de correo en cada arranque con estas
+      # variables; sin ellas pone un Gmail de ejemplo que no envía nada, y las
+      # cuentas creadas por crear_participantes.py nunca reciben su contraseña.
+      - SMTP_HOST=host.docker.internal
+      - SMTP_PORT=1025
+      - SMTP_USER=
+      - SMTP_PASSWORD=
+      - SMTP_PROTOCOL=
+      - MOODLE_MAIL_NOREPLY_ADDRESS=noreply@sward-prueba.com
+      - MOODLE_MAIL_PREFIX=[SWARD]
     volumes:
       - moodledata_data:/var/www/moodledata
       - moodlehtml_data:/var/www/html

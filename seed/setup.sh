@@ -35,11 +35,12 @@ docker exec "$CONTENEDOR" sh -c \
   "sed -i 's/reverseproxy[[:space:]]*=[[:space:]]*false/reverseproxy = true/' /var/www/html/config.php"
 docker exec "$CONTENEDOR" php /var/www/html/admin/cli/purge_caches.php >/dev/null
 
-# Sin SMTP configurado, Moodle lanza "Message was not sent." al matricular (es el
-# correo de bienvenida del curso) y aborta la matricula entera. noemailever es
-# el ajuste estandar de entornos de prueba: descarta cualquier envio de correo.
-echo "==> Desactivando envio de correo (entorno de prueba)"
-docker exec "$CONTENEDOR" sh -c   "grep -q noemailever /var/www/html/config.php ||    sed -i '/^\$CFG->wwwroot/i \$CFG->noemailever = true;' /var/www/html/config.php"
+# El correo va a Mailpit (docker-compose.yml, variables SMTP_*; buzón en
+# http://localhost:8025, sin salida a internet). Antes se desactivaba con
+# noemailever, y las cuentas creadas por crear_participantes.py nunca recibían su
+# contraseña: se quita si quedó de una instalación anterior.
+echo "==> Correo de prueba: Mailpit"
+docker exec "$CONTENEDOR" sh -c "sed -i '/noemailever/d' /var/www/html/config.php"
 
 docker exec "$CONTENEDOR" php /var/www/html/admin/cli/purge_caches.php >/dev/null
 

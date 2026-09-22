@@ -2,15 +2,15 @@
 """Crea en Moodle las cuentas de los participantes inscritos por formulario.
 
 Lee el CSV que exporta Google Forms, crea a cada persona en Moodle y la matricula
-en el curso de la validación. Pensado para participantes externos: no hace falta
+en los cursos de la validación. Pensado para participantes externos: no hace falta
 que estén en el Moodle de su universidad, basta con que estén en este.
 
 Por defecto **no cambia nada**: muestra lo que haría. Para aplicarlo, `--aplicar`.
 
 Uso:
-    python seed/crear_participantes.py respuestas.csv --curso SWARD-EST
-    python seed/crear_participantes.py respuestas.csv --curso SWARD-EST --aplicar
-    python seed/crear_participantes.py respuestas.csv --curso SWARD-EST --aplicar \\
+    python seed/crear_participantes.py respuestas.csv --curso SWARD-EST,SWARD-MF
+    python seed/crear_participantes.py respuestas.csv --curso SWARD-EST,SWARD-MF --aplicar
+    python seed/crear_participantes.py respuestas.csv --curso SWARD-EST,SWARD-MF --aplicar \\
         --docente "profesor@universidad.edu.pe;Nombres;Apellidos"
 
 Dos formas de entregar la contraseña:
@@ -233,7 +233,8 @@ def leer_docente(valor: str) -> Persona:
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("csv", type=Path, help="respuestas exportadas de Google Forms")
-    ap.add_argument("--curso", required=True, help="nombre corto del curso en Moodle")
+    ap.add_argument("--curso", required=True,
+                    help="nombres cortos de los cursos en Moodle, separados por coma")
     ap.add_argument("--docente", help='"correo;Nombres;Apellidos" del profesor')
     ap.add_argument("--aplicar", action="store_true", help="crear y matricular de verdad")
     ap.add_argument("--contrasena-temporal", action="store_true",
@@ -248,11 +249,14 @@ def main() -> None:
     if args.docente:
         personas.insert(0, leer_docente(args.docente))
 
-    curso = moodle.curso(args.curso)
-    ya_matriculados = moodle.matriculados(curso["id"])
+    cortos = [c.strip() for c in args.curso.split(",") if c.strip()]
+    cursos = [moodle.curso(c) for c in cortos]
+    ya_matriculados = {c["id"]: moodle.matriculados(c["id"]) for c in cursos}
 
     modo = "APLICANDO" if args.aplicar else "SIMULACIÓN (nada se cambia; usa --aplicar)"
-    print(f"\n{modo}\nCurso: {curso['fullname']} ({args.curso})")
+    print(f"\n{modo}")
+    for c, corto in zip(cursos, cortos):
+        print(f"Curso: {c['fullname']} ({corto})")
     print(f"Personas a procesar: {len(personas)}\n")
     for aviso in avisos:
         print(f"  aviso  {aviso}")
@@ -283,13 +287,16 @@ def main() -> None:
                     temporales.append({"correo": p.correo, "usuario": username,
                                        "contrasena_temporal": clave})
 
-        if usuario_id is not None and usuario_id in ya_matriculados:
-            matricula = "ya matriculado"
-        elif args.aplicar and usuario_id is not None:
-            moodle.matricular(usuario_id, curso["id"], rol)
-            matricula = f"matriculado como {etiqueta}"
-        else:
-            matricula = f"se matricula como {etiqueta}"
+        estados = []
+        for c, corto in zip(cursos, cortos):
+            if usuario_id is not None and usuario_id in ya_matriculados[c["id"]]:
+                estados.append(f"{corto}: ya matriculado")
+            elif args.aplicar and usuario_id is not None:
+                moodle.matricular(usuario_id, c["id"], rol)
+                estados.append(f"{corto}: matriculado")
+            else:
+                estados.append(f"{corto}: se matricula")
+        matricula = f"{etiqueta} · " + ", ".join(estados)
 
         print(f"  {p.correo:<38} {username:<22} {estado:<11} {matricula}")
         resultado.append({"correo": p.correo, "usuario": username, "rol": etiqueta,
