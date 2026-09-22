@@ -2,7 +2,7 @@
 
 Estadística (`SWARD-EST`) y Matemática Financiera (`SWARD-MF`): seis temas cada
 uno, dos páginas por tema (resumen y ejemplo resuelto) y tres quizzes de cuatro
-preguntas, de un solo intento y calificados sobre 10.
+preguntas, de un solo intento y calificados sobre 20 (escala vigesimal).
 
 - `banco.py`: el contenido. Las respuestas numéricas se calculan aquí, no se
   escriben a mano. Es lo único que se edita cuando el profesor corrige.

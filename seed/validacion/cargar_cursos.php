@@ -6,7 +6,7 @@
  * una sección por tema (su nombre es el concepto del SAKT) con, en este orden:
  * resumen, video (embebido), ejemplo resuelto, práctica guiada (tarea sin nota)
  * y su solución (se abre al entregar la práctica), tres quizzes de un solo
- * intento calificados sobre 10 con sus preguntas importadas desde GIFT, y un
+ * intento calificados sobre 20 con sus preguntas importadas desde GIFT, y un
  * recurso externo para practicar más. Solo los quizzes generan datos para el
  * modelo: son lo único calificado.
  *
@@ -33,6 +33,9 @@ require_once($CFG->dirroot . '/mod/forum/lib.php');
 require_once($CFG->dirroot . '/mod/quiz/lib.php');
 require_once($CFG->dirroot . '/question/engine/lib.php');
 require_once($CFG->libdir . '/gradelib.php');
+
+// Los participantes son universitarios peruanos: la nota va de 0 a 20.
+const NOTA_MAXIMA = 20;
 
 \core\session\manager::set_user(get_admin());
 
@@ -200,6 +203,18 @@ function presentar(object $curso, string $modulo, string $nombre, string $descri
             $item->set_hidden(0, true);
             echo "      nota del quiz visible en el boletín\n";
         }
+        // Quizzes creados sin «maxmarks»: el estudiante terminaba el intento y no
+        // veía ninguna nota, ni en el quiz ni en la revisión.
+        $quiz = $DB->get_record('quiz', ['id' => $m->instancia], '*', MUST_EXIST);
+        if ((int) $quiz->reviewmaxmarks !== (int) $quiz->reviewmarks) {
+            $DB->set_field('quiz', 'reviewmaxmarks', $quiz->reviewmarks, ['id' => $quiz->id]);
+            echo "      el estudiante ya ve su nota al terminar\n";
+        }
+        if (abs((float) $quiz->grade - (float) NOTA_MAXIMA) > 0.001) {
+            \mod_quiz\quiz_settings::create($quiz->id)->get_grade_calculator()
+                ->update_quiz_maximum_grade(NOTA_MAXIMA);
+            echo "      nota máxima: " . NOTA_MAXIMA . "\n";
+        }
     }
     $cm = ['id' => $m->cmid, 'showdescription' => 1, 'completion' => COMPLETION_TRACKING_AUTOMATIC,
            'completionview' => 0, 'completiongradeitemnumber' => null, 'completionpassgrade' => 0];
@@ -214,6 +229,23 @@ function presentar(object $curso, string $modulo, string $nombre, string $descri
 }
 
 /** Imagen de la tarjeta del curso en «Mis cursos», si aún no tiene. */
+/**
+ * El «Total del curso» suma los 18 quizzes: 360 puntos, un número que no
+ * significa nada para el participante y que además contradice lo que se le dice
+ * (que los quizzes no afectan su nota). Se oculta y quedan las notas por quiz.
+ */
+function ocultar_total(object $curso): string {
+    $item = grade_item::fetch(['courseid' => $curso->id, 'itemtype' => 'course']);
+    if (!$item) {
+        return 'no existe';
+    }
+    if ($item->is_hidden()) {
+        return 'ya estaba oculto';
+    }
+    $item->set_hidden(1, true);
+    return 'oculto';
+}
+
 function portada(object $curso, ?string $png): string {
     if (!$png) {
         return 'sin imagen';
@@ -257,11 +289,14 @@ function crear_quiz(object $curso, int $seccion, array $q): object {
     }
     // Revisión tras el intento: nota y si cada respuesta fue correcta, sin mostrar
     // la respuesta correcta (los compañeros aún no rinden el mismo quiz).
+    // «maxmarks» manda sobre «marks»: sin él Moodle esconde la nota aunque
+    // «marks» esté activo (mod/quiz/classes/question/display_options.php).
     $revision = [];
-    foreach (['attempt', 'correctness', 'marks', 'specificfeedback', 'generalfeedback', 'rightanswer',
-              'overallfeedback'] as $campo) {
+    foreach (['attempt', 'correctness', 'maxmarks', 'marks', 'specificfeedback', 'generalfeedback',
+              'rightanswer', 'overallfeedback'] as $campo) {
         foreach (['during', 'immediately', 'open', 'closed'] as $cuando) {
-            $mostrar = in_array($campo, ['attempt', 'correctness', 'marks'], true) && $cuando !== 'during';
+            $mostrar = in_array($campo, ['attempt', 'correctness', 'maxmarks', 'marks'], true)
+                && $cuando !== 'during';
             $revision[$campo . $cuando] = $mostrar ? 1 : 0;
         }
     }
@@ -271,7 +306,7 @@ function crear_quiz(object $curso, int $seccion, array $q): object {
         'overduehandling' => 'autosubmit', 'graceperiod' => 0,
         'preferredbehaviour' => 'deferredfeedback', 'canredoquestions' => 0,
         'attempts' => 1, 'attemptonlast' => 0, 'grademethod' => QUIZ_GRADEHIGHEST,
-        'decimalpoints' => 2, 'questiondecimalpoints' => -1, 'grade' => 10, 'sumgrades' => 0,
+        'decimalpoints' => 2, 'questiondecimalpoints' => -1, 'grade' => NOTA_MAXIMA, 'sumgrades' => 0,
         'questionsperpage' => 0, 'navmethod' => 'free', 'shuffleanswers' => 1,
         'browsersecurity' => '-', 'quizpassword' => '', 'subnet' => '',
         'delay1' => 0, 'delay2' => 0, 'showuserpicture' => 0, 'showblocks' => 0,
@@ -361,6 +396,7 @@ foreach ($cursos as $c) {
             'summary' => $c['presentacion'], 'summaryformat' => FORMAT_HTML]);
     }
     echo "  Portada: " . portada($curso, $c['imagen_png'] ?? null) . "\n";
+    echo "  Total del curso: " . ocultar_total($curso) . "\n";
     // El foro de novedades se llama «Announcements»/«Avisos» según el idioma con
     // que se creó el curso; se fija para que diga lo mismo en local y en la nube.
     $novedades = $DB->get_record_sql(

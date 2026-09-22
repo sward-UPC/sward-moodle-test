@@ -92,7 +92,7 @@ $autenticado = $DB->get_record('role', ['shortname' => 'user'], '*', MUST_EXIST)
 unassign_capability('moodle/user:manageownblocks', $autenticado->id, context_system::instance()->id);
 echo "  estudiantes: sin lista de participantes ni edición del perfil\n";
 // Boletín de notas del estudiante. Traía siete columnas —ponderación, rango
-// («0–10»), porcentaje, aporte al total— que aquí no dicen nada: los quizzes no
+// («0–20»), porcentaje, aporte al total— que aquí no dicen nada: los quizzes no
 // cuentan para su nota del curso. Queda la actividad y la nota.
 foreach ([
     'showweight' => 0,
