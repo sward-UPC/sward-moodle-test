@@ -149,9 +149,16 @@ function crear_solucion(object $curso, int $seccion, array $p, int $cmpractica):
 
 /** Guía del profesor: página de la sección inicial, oculta a los estudiantes. */
 function crear_guia(object $curso, array $g): string {
+    global $DB;
     $existe = modulo_existente($curso->id, 'page', $g['nombre']);
     if ($existe) {
-        return 'ya existía';
+        $pagina = $DB->get_record('page', ['id' => $existe->instancia], 'id, content', MUST_EXIST);
+        if (trim($pagina->content) === trim($g['contenido'])) {
+            return 'ya existía';
+        }
+        $DB->update_record('page', (object) ['id' => $pagina->id, 'content' => $g['contenido'],
+            'contentformat' => FORMAT_HTML]);
+        return 'actualizada';
     }
     $info = create_module(base_modulo($curso, 0, 'page', $g['nombre'], [
         'content' => $g['contenido'], 'contentformat' => FORMAT_HTML,
@@ -239,6 +246,34 @@ function presentar(object $curso, string $modulo, string $nombre, string $descri
 }
 
 /** Imagen de la tarjeta del curso en «Mis cursos», si aún no tiene. */
+/**
+ * «Reutilización de curso» le ofrece al profesor reiniciar el curso, que borra
+ * todos los intentos, y restaurar o importar otro encima. Son dos clics para
+ * perder los datos del estudio, y no necesita ninguna de las tres. El resto de
+ * sus permisos queda igual: publica avisos, ve notas y reportes, y puede editar
+ * si hiciera falta.
+ */
+function proteger_curso(object $curso): string {
+    global $DB;
+    $rol = $DB->get_record('role', ['shortname' => 'editingteacher'], '*', MUST_EXIST);
+    $contexto = context_course::instance($curso->id);
+    $nuevos = 0;
+    foreach (['moodle/course:reset', 'moodle/restore:restorecourse',
+              'moodle/restore:restoretargetimport'] as $capacidad) {
+        $actual = $DB->get_field('role_capabilities', 'permission',
+            ['roleid' => $rol->id, 'capability' => $capacidad, 'contextid' => $contexto->id]);
+        if ((int) $actual !== CAP_PROHIBIT) {
+            assign_capability($capacidad, CAP_PROHIBIT, $rol->id, $contexto->id, true);
+            $nuevos++;
+        }
+    }
+    if ($nuevos) {
+        $contexto->mark_dirty();
+        return "$nuevos puestos (reiniciar, restaurar, importar)";
+    }
+    return 'ya estaban puestos';
+}
+
 /**
  * El «Total del curso» suma los 18 quizzes: 360 puntos, un número que no
  * significa nada para el participante y que además contradice lo que se le dice
@@ -407,6 +442,7 @@ foreach ($cursos as $c) {
     }
     echo "  Portada: " . portada($curso, $c['imagen_png'] ?? null) . "\n";
     echo "  Total del curso: " . ocultar_total($curso) . "\n";
+    echo "  Candados: " . proteger_curso($curso) . "\n";
     // El foro de novedades se llama «Announcements»/«Avisos» según el idioma con
     // que se creó el curso; se fija para que diga lo mismo en local y en la nube.
     $novedades = $DB->get_record_sql(

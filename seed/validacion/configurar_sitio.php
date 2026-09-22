@@ -29,6 +29,7 @@
  * - El boletín del estudiante con dos columnas: la actividad y su nota
  * - Sin comentarios en las entregas, acuses de recibo ni publicidad del editor
  * - «Quiz», no «cuestionario», y un botón que dice lo que hace
+ * - Sin las actividades, insignias ni menús que el estudio no usa
  * - La categoría de los cursos con nombre propio, no «Category 1»
  * - Sin «Modo de edición» en el perfil: los participantes no acomodan bloques
  * - Los estudiantes no ven la lista de participantes (nombres, roles y último
@@ -114,6 +115,29 @@ foreach ($propias as $clave => $texto) {
 file_put_contents($carpeta . '/quiz.php', $lineas);
 get_string_manager()->reset_caches();
 echo "  idioma: " . count($propias) . " palabras propias del quiz\n";
+
+// El menú del profesor y el de «añadir actividad» ofrecían veinte cosas que el
+// estudio no usa. Quedan las cinco que sí: tarea, foro, página, quiz y enlace,
+// más archivo y etiqueta por si el profesor quiere compartir algo.
+$sobran = ['book', 'choice', 'data', 'feedback', 'folder', 'glossary', 'h5pactivity',
+           'imscp', 'lesson', 'lti', 'scorm', 'wiki', 'workshop'];
+$apagados = 0;
+foreach ($sobran as $modulo) {
+    if ($DB->get_field('modules', 'visible', ['name' => $modulo])) {
+        \core\plugininfo\mod::enable_plugin($modulo, 0);
+        $apagados++;
+    }
+}
+set_config('enablebadges', 0);
+echo "  actividades: $apagados apagadas; insignias fuera\n";
+
+// El menú «Más» del profesor seguía ofreciendo el banco de contenido, los
+// filtros y las herramientas LTI, que no se usan en el estudio.
+$docente = $DB->get_record('role', ['shortname' => 'editingteacher'], '*', MUST_EXIST);
+foreach (['moodle/contentbank:access', 'moodle/filter:manage', 'mod/lti:addcoursetool', 'mod/lti:addpreconfiguredinstance'] as $capacidad) {
+    unassign_capability($capacidad, $docente->id, context_system::instance()->id);
+}
+echo "  menú del profesor: sin banco de contenido, filtros ni LTI\n";
 
 // Comentarios en las entregas: otro canal de conversación que el estudio no usa
 // y que en la práctica guiada solo añade ruido bajo el enunciado.
