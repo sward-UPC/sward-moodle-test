@@ -23,6 +23,8 @@
  *   correos desde la cuenta de Gmail del proyecto, que corta el envío hacia los
  *   500 diarios y es la misma que manda las contraseñas. Las confirmaciones
  *   quedan dentro de Moodle (campana), no por correo.
+ * - Menos ruido para el participante: la lista de cursos sin categorías ni
+ *   selector de vistas, y el menú del usuario con solo su perfil y sus notas.
  * - Los estudiantes no ven la lista de participantes (nombres, roles y último
  *   acceso de sus compañeros): no la necesitan y expone datos de los demás.
  * - Sin competencias: el estudio no las usa y agregaban una pestaña al curso.
@@ -67,6 +69,14 @@ set_config('auth_instructions', '<p>Entra con el correo con el que te inscribist
     . 'usa la contraseña que te llegó por correo: Moodle te pedirá cambiarla.</p>');
 echo "  ingreso: instrucciones
 ";
+
+// «Mis cursos»: tarjetas, sin el nombre de la categoría ni el selector de vistas.
+set_config('displaycategories', 0, 'block_myoverview');
+set_config('layouts', 'card', 'block_myoverview');
+// Menú del usuario: su perfil y sus notas. Sin calendario, archivos ni reportes,
+// que no se usan en el estudio.
+set_config('customusermenuitems', "profile,moodle|/user/profile.php\ngrades,grades|/grade/report/mygrades.php");
+echo "  menús: sin lo que el estudio no usa\n";
 
 $estudiante = $DB->get_record('role', ['shortname' => 'student'], '*', MUST_EXIST);
 unassign_capability('moodle/course:viewparticipants', $estudiante->id, context_system::instance()->id);

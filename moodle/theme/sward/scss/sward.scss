@@ -186,6 +186,12 @@ a:focus-visible {
   max-width: 16rem;
 }
 
+// El botón flotante de ayuda de Moodle (abajo a la derecha) lleva a la
+// documentación del producto: al participante no le sirve y tapa contenido.
+.btn-footer-popover {
+  display: none;
+}
+
 // ── Ingreso ─────────────────────────────────────────────────────────────────
 .pagelayout-login #page {
   background:
