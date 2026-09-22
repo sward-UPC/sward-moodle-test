@@ -25,6 +25,7 @@
  *   quedan dentro de Moodle (campana), no por correo.
  * - Menos ruido para el participante: la lista de cursos sin categorías ni
  *   selector de vistas, y el menú del usuario con solo su perfil y sus notas.
+ * - Todo en español: la interfaz venía en inglés y el contenido en español
  * - La categoría de los cursos con nombre propio, no «Category 1»
  * - Sin «Modo de edición» en el perfil: los participantes no acomodan bloques
  * - Los estudiantes no ven la lista de participantes (nombres, roles y último
@@ -36,6 +37,7 @@
 define('CLI_SCRIPT', true);
 require('/var/www/html/config.php');
 require_once($CFG->libdir . '/adminlib.php');
+require_once($CFG->libdir . '/moodlelib.php');
 
 $ajustes = [
     'authloginviaemail' => 1,
@@ -88,6 +90,24 @@ unassign_capability('moodle/course:viewparticipants', $estudiante->id, context_s
 $autenticado = $DB->get_record('role', ['shortname' => 'user'], '*', MUST_EXIST);
 unassign_capability('moodle/user:manageownblocks', $autenticado->id, context_system::instance()->id);
 echo "  estudiantes: sin lista de participantes ni edición del perfil\n";
+// Idioma. Moodle se instala solo con el inglés; el paquete español se baja de
+// download.moodle.org la primera vez. Sin selector de idioma ni detección por
+// el navegador: todos los participantes ven lo mismo.
+if (!array_key_exists('es', get_string_manager()->get_list_of_translations())) {
+    $idiomas = new \tool_langimport\controller();
+    if ($idiomas->install_languagepacks('es')) {
+        get_string_manager()->reset_caches();
+        echo "  idioma: paquete «es» instalado\n";
+    } else {
+        echo "  AVISO: no se pudo bajar el paquete «es»: " . implode('; ', $idiomas->errors) . "\n";
+    }
+}
+set_config('lang', 'es');
+set_config('langmenu', 0);
+set_config('autolang', 0);
+$DB->set_field('user', 'lang', 'es', []);
+echo "  idioma: español en el sitio y en los usuarios\n";
+
 // Los cursos van en la categoría que Moodle crea al instalar, llamada
 // «Category 1»; ese nombre asoma en la ruta de navegación.
 $DB->set_field('course_categories', 'name', 'Cursos SWARD', ['id' => 1]);
