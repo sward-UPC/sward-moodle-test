@@ -25,6 +25,7 @@ require('/var/www/html/config.php');
 require_once($CFG->dirroot . '/user/lib.php');
 require_once($CFG->dirroot . '/mod/quiz/locallib.php');
 require_once($CFG->libdir . '/enrollib.php');
+require_once($CFG->libdir . '/gradelib.php');
 require_once($CFG->libdir . '/testing/generator/component_generator_base.php');
 require_once($CFG->libdir . '/testing/generator/module_generator.php');
 require_once($CFG->libdir . '/testing/generator/data_generator.php');
@@ -41,27 +42,39 @@ function simulados(): array {
     return $DB->get_records_select('user', 'username LIKE ? AND deleted = 0', [PREFIJO . '%']);
 }
 
-function intentos_del_admin(): array {
+/**
+ * Intentos de los simulados en los cursos de la validación, también los de
+ * simulados ya borrados (Moodle los renombra a correo.fecha, que conserva el
+ * prefijo) y los que una versión anterior de este script dejó a nombre del admin.
+ * delete_user() no borra los intentos, y un quiz con intentos ya no deja cambiar
+ * sus preguntas.
+ */
+function intentos_simulados(): array {
     global $DB;
     [$en, $params] = $DB->get_in_or_equal(CURSOS);
     return $DB->get_records_sql(
         "SELECT qa.* FROM {quiz_attempts} qa JOIN {quiz} q ON q.id = qa.quiz JOIN {course} c ON c.id = q.course
-          WHERE qa.userid = ? AND c.shortname $en", array_merge([get_admin()->id], $params));
+           JOIN {user} u ON u.id = qa.userid
+          WHERE c.shortname $en AND (u.username LIKE ? OR u.id = ?)",
+        array_merge($params, [PREFIJO . '%', get_admin()->id]));
 }
 
 if (in_array('--borrar', $argv, true)) {
+    $a = 0;
+    foreach (intentos_simulados() as $intento) {
+        quiz_delete_attempt($intento, $DB->get_record('quiz', ['id' => $intento->quiz]));
+        $a++;
+    }
     $n = 0;
     foreach (simulados() as $u) {
         delete_user($u);
         $n++;
     }
-    // Intentos que una versión anterior de este script dejó a nombre del admin.
-    $a = 0;
-    foreach (intentos_del_admin() as $intento) {
-        quiz_delete_attempt($intento, $DB->get_record('quiz', ['id' => $intento->quiz]));
-        $a++;
+    // Notas vacías que el borrado de intentos deja a los simulados ya borrados.
+    foreach ($DB->get_fieldset_select('user', 'id', 'username LIKE ? AND deleted = 1', [PREFIJO . '%']) as $id) {
+        grade_user_delete($id);
     }
-    echo "Borrados $n estudiantes simulados, con sus intentos y notas" . ($a ? ", y $a intentos del admin" : '') . ".\n";
+    echo "Borrados $n estudiantes simulados y $a intentos.\n";
     exit(0);
 }
 
