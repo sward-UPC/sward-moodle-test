@@ -22,3 +22,7 @@ seed/participantes/
 *respuestas*.csv
 resultado_inscripcion*.csv
 contrasenas_temporales*.csv
+
+# Generados por seed/validacion/generar.py
+seed/validacion/salida/
+__pycache__/
