@@ -23,6 +23,9 @@
  *   correos desde la cuenta de Gmail del proyecto, que corta el envío hacia los
  *   500 diarios y es la misma que manda las contraseñas. Las confirmaciones
  *   quedan dentro de Moodle (campana), no por correo.
+ * - Los estudiantes no ven la lista de participantes (nombres, roles y último
+ *   acceso de sus compañeros): no la necesitan y expone datos de los demás.
+ * - Sin competencias: el estudio no las usa y agregaban una pestaña al curso.
  * - Tema SWARD (moodle/theme/sward), si está instalado.
  */
 
@@ -58,6 +61,18 @@ foreach ($avisos as $componente => $nombres) {
         echo "  aviso {$componente}/{$nombre}: solo en Moodle\n";
     }
 }
+
+// Qué hacer en la pantalla de ingreso (Moodle lo muestra bajo el formulario).
+set_config('auth_instructions', '<p>Entra con el correo con el que te inscribiste. Si es tu primer ingreso, '
+    . 'usa la contraseña que te llegó por correo: Moodle te pedirá cambiarla.</p>');
+echo "  ingreso: instrucciones
+";
+
+$estudiante = $DB->get_record('role', ['shortname' => 'student'], '*', MUST_EXIST);
+unassign_capability('moodle/course:viewparticipants', $estudiante->id, context_system::instance()->id);
+echo "  estudiantes: sin lista de participantes\n";
+set_config('enabled', 0, 'core_competency');
+echo "  competencias: desactivadas\n";
 
 if (core_component::get_plugin_directory('theme', 'sward')) {
     set_config('theme', 'sward');
