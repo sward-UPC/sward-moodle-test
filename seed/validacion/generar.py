@@ -75,7 +75,7 @@ GUIA_DOCENTE = {
 <p>Esta página solo la ve usted y el equipo del proyecto. Los estudiantes no la ven.</p>
 
 <h4>Qué hacen sus estudiantes</h4>
-<p>Cada tema tiene un resumen, un ejemplo resuelto y tres quizzes de cuatro preguntas (básico, intermedio y aplicado), de un solo intento y calificados sobre 10. <strong>Los quizzes no afectan la nota de su curso</strong>: son los datos con que el sistema aprende. El video, la práctica guiada y el recurso externo son opcionales.</p>
+<p>Cada tema tiene un resumen, un ejemplo resuelto y tres quizzes de cuatro preguntas (básico, intermedio y aplicado), de un solo intento y calificados sobre 20. <strong>Los quizzes no afectan la nota de su curso</strong>: son los datos con que el sistema aprende. El video, la práctica guiada y el recurso externo son opcionales.</p>
 
 <h4>Dónde ver el avance</h4>
 <ul>
@@ -273,7 +273,7 @@ th{background:#e8e8e8} .ok{color:#1a6b3a;font-weight:bold}
         "corresponda a sus estudiantes y que los distractores sean plausibles. Puede corregir directamente en este "
         "documento. Los <strong>nombres de los temas</strong> no deben cambiar una vez que los estudiantes empiecen, "
         "porque el sistema los usa para identificar cada tema.</p>"
-        "<p><strong>Condiciones de los quizzes:</strong> un solo intento, calificación sobre 10, sin límite de tiempo "
+        "<p><strong>Condiciones de los quizzes:</strong> un solo intento, calificación sobre 20, sin límite de tiempo "
         "dentro del plazo de la fase 1. No cuentan para la nota del curso. En las preguntas numéricas se acepta un "
         "pequeño margen por redondeo, indicado junto a cada respuesta. Se usa año comercial de 360 días.</p>")
     for curso in CURSOS:
