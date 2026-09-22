@@ -1,0 +1,220 @@
+// Estilos propios del tema SWARD, sobre Boost.
+//
+// Criterio: el participante entra a hacer una tarea concreta (leer, practicar,
+// rendir un quiz). Se busca jerarquía clara, aire entre bloques, estados de
+// interacción visibles y foco de teclado siempre visible. No se toca el núcleo
+// de Moodle: son reglas sobre sus clases.
+
+$sward-tinta: #1c1d2b;
+$sward-tinta-suave: #5b5d76;
+$sward-fondo: #f6f6fa;
+$sward-linea: #e4e4ee;
+$sward-sombra: rgba(28, 29, 43, 0.06);
+$sward-sombra-alta: rgba(28, 29, 43, 0.1);
+$sward-primario-suave: rgba(79, 70, 229, 0.06);
+
+body {
+  background-color: $sward-fondo;
+  color: $sward-tinta;
+}
+
+h1,
+h2,
+h3,
+.h1,
+.h2,
+.h3 {
+  letter-spacing: -0.012em;
+  font-weight: 600;
+  text-wrap: balance;
+}
+
+#page-header .page-context-header .page-header-headings h1 {
+  font-size: 1.9rem;
+}
+
+// Cifras alineadas en columnas: notas, tablas de participantes, calificaciones.
+table td,
+table th,
+.grade,
+.quizgrade,
+.gradedisplay {
+  font-variant-numeric: tabular-nums;
+}
+
+// ── Página del curso ────────────────────────────────────────────────────────
+.course-content .course-section {
+  background: #fff;
+  border: 1px solid $sward-linea;
+  border-radius: 14px;
+  box-shadow: 0 1px 2px $sward-sombra;
+  padding: 0.35rem 0.5rem 0.75rem;
+  margin-bottom: 1.35rem;
+}
+
+.course-content .course-section .sectionname,
+.course-content .course-section h3 {
+  font-size: 1.22rem;
+}
+
+.course-content .course-section .summarytext {
+  color: $sward-tinta-suave;
+  max-width: 68ch;
+}
+
+// Cada actividad es una fila con su etiqueta debajo («Lectura · 5 min»).
+.activity-item {
+  border-radius: 10px;
+  transition: background-color 160ms ease, transform 160ms ease;
+}
+
+.activity-item:hover {
+  background-color: $sward-primario-suave;
+}
+
+.activity-item .activityname a,
+.activity-item .activitytitle a {
+  font-weight: 500;
+}
+
+.activity-item .description,
+.activity-item .activity-altcontent {
+  color: $sward-tinta-suave;
+  font-size: 0.86rem;
+  max-width: 72ch;
+}
+
+// ── Tarjetas de «Mis cursos» ────────────────────────────────────────────────
+.dashboard-card {
+  border: 1px solid $sward-linea;
+  border-radius: 14px;
+  box-shadow: 0 1px 2px $sward-sombra;
+  overflow: hidden;
+  transition: transform 180ms ease, box-shadow 180ms ease;
+}
+
+.dashboard-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px $sward-sombra-alta;
+}
+
+.dashboard-card .dashboard-card-img {
+  aspect-ratio: 2 / 1;
+  height: auto;
+  background-size: cover;
+}
+
+.dashboard-card .course-info-container .categoryname {
+  display: none; // la categoría no le dice nada al estudiante
+}
+
+.dashboard-card .progress {
+  height: 0.5rem;
+  border-radius: 999px;
+}
+
+// ── Botones y foco ──────────────────────────────────────────────────────────
+.btn {
+  transition: background-color 160ms ease, border-color 160ms ease, transform 120ms ease;
+}
+
+.btn:active {
+  transform: translateY(1px);
+}
+
+.btn-primary:hover,
+.btn-primary:focus {
+  background-color: darken($primary, 8%);
+  border-color: darken($primary, 8%);
+}
+
+:focus-visible,
+.btn:focus-visible,
+a:focus-visible {
+  outline: 3px solid rgba(79, 70, 229, 0.35);
+  outline-offset: 2px;
+  box-shadow: none;
+}
+
+// ── Lista de participantes (docente) ────────────────────────────────────────
+#page-user-index .initialbar {
+  display: none; // con 30 personas estorba; el filtro por palabra basta
+}
+
+#page-user-index #participantsform,
+#page-user-index .userlist {
+  background: #fff;
+  border: 1px solid $sward-linea;
+  border-radius: 14px;
+  box-shadow: 0 1px 2px $sward-sombra;
+  padding: 0.75rem 1rem 0.25rem;
+}
+
+#page-user-index table th {
+  font-size: 0.8rem;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  color: $sward-tinta-suave;
+  border-top: 0;
+}
+
+#page-user-index table tbody tr:hover {
+  background-color: $sward-primario-suave;
+}
+
+#page-user-index .userpicture,
+.activity-item .activityiconcontainer img {
+  border-radius: 10px; // cuadrado redondeado, no círculo
+}
+
+// ── Quiz ────────────────────────────────────────────────────────────────────
+.path-mod-quiz .que {
+  border: 1px solid $sward-linea;
+  border-radius: 14px;
+  box-shadow: 0 1px 2px $sward-sombra;
+  background: #fff;
+  padding: 0.5rem 0.75rem;
+}
+
+.path-mod-quiz .que .qtext {
+  font-size: 1.02rem;
+  line-height: 1.6;
+  max-width: 70ch;
+}
+
+.path-mod-quiz .que .answer input[type="text"] {
+  max-width: 16rem;
+}
+
+// ── Ingreso ─────────────────────────────────────────────────────────────────
+.pagelayout-login #page {
+  background:
+    radial-gradient(60rem 30rem at 15% -10%, rgba(79, 70, 229, 0.10), transparent 60%),
+    radial-gradient(45rem 25rem at 95% 110%, rgba(79, 70, 229, 0.08), transparent 60%),
+    $sward-fondo;
+}
+
+.pagelayout-login .login-container {
+  background: #fff;
+  border: 1px solid $sward-linea;
+  border-radius: 18px;
+  box-shadow: 0 12px 36px $sward-sombra-alta;
+  padding: 2rem 1.75rem;
+}
+
+.pagelayout-login .login-heading {
+  font-size: 1.5rem;
+}
+
+.pagelayout-login .login-instructions {
+  color: $sward-tinta-suave;
+  font-size: 0.92rem;
+  max-width: 44ch;
+  margin-inline: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+  }
+}

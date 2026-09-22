@@ -39,6 +39,17 @@ function theme_sward_get_main_scss_content($theme) {
 }
 
 /**
+ * Reglas propias del tema (scss/sward.scss): tipografía, tarjetas, estados de
+ * interacción, foco de teclado, lista de participantes y página de ingreso.
+ *
+ * @param theme_config $theme
+ * @return string
+ */
+function theme_sward_get_extra_scss($theme) {
+    return file_get_contents(__DIR__ . '/scss/sward.scss');
+}
+
+/**
  * Variables que se anteponen al SCSS: el color principal de SWARD.
  *
  * @param theme_config $theme
