@@ -42,6 +42,24 @@ table th,
   font-variant-numeric: tabular-nums;
 }
 
+// ── Un solo menú a la izquierda ─────────────────────────────────────────────
+// Moodle abre dos cajones desde la izquierda: el índice del curso y el menú
+// principal. Ese menú, ya reducido, solo lleva a «Mis cursos», que está en la
+// barra de arriba: se quita y queda el índice del curso.
+// Los selectores llevan varias clases a propósito: las utilidades de Bootstrap
+// (d-block, d-none) también usan !important y, a igual especificidad, gana la
+// que aparece después.
+.drawer.drawer-primary,
+.navbar .navbar-toggler.d-block {
+  display: none !important;
+}
+
+// Al quitar el botón del menú, «Mis cursos» debe verse también en pantallas
+// angostas (Moodle lo esconde ahí para meterlo en ese cajón).
+.navbar .container-fluid .primary-navigation {
+  display: block !important;
+}
+
 // ── Página del curso ────────────────────────────────────────────────────────
 .course-content .course-section {
   background: #fff;
