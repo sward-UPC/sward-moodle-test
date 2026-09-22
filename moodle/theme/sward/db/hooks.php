@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * Versión del tema SWARD.
+ * Hooks del tema SWARD.
  *
  * @package    theme_sward
  * @copyright  2026 Proyecto SWARD (UPC)
@@ -24,11 +24,9 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->component = 'theme_sward';
-$plugin->version   = 2026092209;
-$plugin->requires  = 2024100100;   // Moodle 4.5.
-$plugin->maturity  = MATURITY_STABLE;
-$plugin->release   = '1.0';
-$plugin->dependencies = [
-    'theme_boost' => 2024100700,
+$callbacks = [
+    [
+        'hook' => \core\hook\output\before_standard_head_html_generation::class,
+        'callback' => [\theme_sward\local\hooks::class, 'nombre_del_curso_en_el_indice'],
+    ],
 ];

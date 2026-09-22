@@ -25,6 +25,7 @@
  *   quedan dentro de Moodle (campana), no por correo.
  * - Menos ruido para el participante: la lista de cursos sin categorías ni
  *   selector de vistas, y el menú del usuario con solo su perfil y sus notas.
+ * - Sin «Modo de edición» en el perfil: los participantes no acomodan bloques
  * - Los estudiantes no ven la lista de participantes (nombres, roles y último
  *   acceso de sus compañeros): no la necesitan y expone datos de los demás.
  * - Sin competencias: el estudio no las usa y agregaban una pestaña al curso.
@@ -80,7 +81,12 @@ echo "  menús: sin lo que el estudio no usa\n";
 
 $estudiante = $DB->get_record('role', ['shortname' => 'student'], '*', MUST_EXIST);
 unassign_capability('moodle/course:viewparticipants', $estudiante->id, context_system::instance()->id);
-echo "  estudiantes: sin lista de participantes\n";
+// El perfil del usuario trae un «Modo de edición» para acomodar los bloques de
+// esa página. Es personalización que aquí no aporta y solo invita a desordenar el
+// perfil; el permiso cuelga del rol «usuario autenticado», no del de estudiante.
+$autenticado = $DB->get_record('role', ['shortname' => 'user'], '*', MUST_EXIST);
+unassign_capability('moodle/user:manageownblocks', $autenticado->id, context_system::instance()->id);
+echo "  estudiantes: sin lista de participantes ni edición del perfil\n";
 set_config('enabled', 0, 'core_competency');
 echo "  competencias: desactivadas\n";
 

@@ -60,6 +60,26 @@ table th,
   display: block !important;
 }
 
+// El nombre del curso en la cabecera del índice lateral (el texto lo pone el
+// hook del tema; aquí va cómo se ve).
+#theme_boost-drawers-courseindex .drawerheader {
+  align-items: center;
+
+  &::before {
+    order: -1;
+    flex: 1 1 auto;
+    min-width: 0;
+    padding-inline-start: 1rem;
+    font-weight: 600;
+    font-size: 0.98rem;
+    line-height: 1.2;
+    color: $sward-tinta;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
 // ── Página del curso ────────────────────────────────────────────────────────
 .course-content .course-section {
   background: #fff;
