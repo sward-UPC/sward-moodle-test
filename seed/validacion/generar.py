@@ -216,11 +216,11 @@ def generar_json() -> Path:
                 },
                 "quizzes": [
                     {"nombre": nombre_quiz(tema, k), "nivel": NIVELES[k - 1],
-                     # El separador de miles sí rompe la corrección («1.234,56» se lee
-                     # como 1.23456), así que el aviso va también antes de empezar.
+                     # El aviso de los decimales va también aquí, corto: el separador de
+                     # miles rompe la corrección («1.234,56» se lee como 1.23456). La
+                     # regla completa está en cada pregunta y en la presentación.
                      "descripcion": (f"Quiz {NIVELES[k - 1]} · 4 preguntas · 1 intento · unos 5 min · "
-                                     "no afecta tu nota del curso. En las respuestas numéricas escribe "
-                                     "solo el número, sin separador de miles y con punto decimal: 1234.56"),
+                                     "no afecta tu nota · decimales con punto: 1234.56"),
                      "gift": gift_quiz(nombre_quiz(tema, k), quiz)}
                     for k, quiz in enumerate(t["quizzes"], 1)
                 ],
