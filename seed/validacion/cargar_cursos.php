@@ -8,7 +8,8 @@
  * con sus preguntas importadas desde GIFT.
  *
  * Es idempotente: lo que ya existe no se duplica, así que se puede volver a
- * correr si algo falló a mitad. Nunca borra.
+ * correr si algo falló a mitad. Nunca borra. Los cursos no fuerzan idioma:
+ * siguen el del sitio.
  *
  *   docker cp seed/validacion/salida/cursos.json sward-moodle-app:/tmp/cursos.json
  *   docker cp seed/validacion/cargar_cursos.php sward-moodle-app:/tmp/cargar_cursos.php
@@ -158,13 +159,19 @@ foreach ($cursos as $c) {
         $curso = create_course((object) [
             'fullname' => $c['nombre'], 'shortname' => $c['corto'], 'category' => 1,
             'summary' => '<p>' . s($c['descripcion']) . '</p>', 'summaryformat' => FORMAT_HTML,
-            'format' => 'topics', 'numsections' => count($c['temas']), 'lang' => 'es', 'visible' => 1,
+            'format' => 'topics', 'numsections' => count($c['temas']), 'visible' => 1,
             'enablecompletion' => 1, 'showgrades' => 1,
         ]);
         $total['cursos']++;
         echo "Curso creado: {$c['nombre']} (id {$curso->id})\n";
     } else {
         echo "Curso existente: {$c['nombre']} (id {$curso->id})\n";
+        // Versiones anteriores forzaban 'es'; sin ese paquete, el índice del curso
+        // no carga. El curso sigue el idioma del sitio.
+        if ($curso->lang !== '') {
+            $DB->set_field('course', 'lang', '', ['id' => $curso->id]);
+            echo "  idioma forzado ({$curso->lang}) quitado: sigue el del sitio\n";
+        }
     }
     course_create_sections_if_missing($curso, range(0, count($c['temas'])));
 
