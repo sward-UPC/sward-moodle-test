@@ -149,12 +149,19 @@ set_config('submissionreceipts', 0, 'assign');
 set_config('branding', 0, 'editor_tiny');
 echo "  entregas: sin comentarios, sin acuse de recibo, sin publicidad del editor\n";
 
-// Boletín de notas del estudiante. Traía siete columnas —ponderación, rango
-// («0–20»), porcentaje, aporte al total— que aquí no dicen nada: los quizzes no
-// cuentan para su nota del curso. Queda la actividad y la nota.
+// Boletín de notas del estudiante. Traía siete columnas —ponderación, rango,
+// porcentaje, aporte al total— que aquí no dicen nada: los quizzes no cuentan
+// para su nota del curso. Queda la actividad, su nota y el rango.
+//
+// OJO con el rango: no es solo estética. gradereport_user_get_grade_items —el
+// servicio web con el que SWARD lee las notas— arma su respuesta con las
+// columnas visibles de este informe, así que con el rango oculto devuelve
+// grademax nulo. El 22 de septiembre eso convirtió cada 20/20 en «incorrecta»
+// (el adaptador dividía entre 100) y dejó a los 31 estudiantes simulados en
+// riesgo crítico con 15 % de dominio. Se queda visible.
 foreach ([
     'showweight' => 0,
-    'showrange' => 0,
+    'showrange' => 1,
     'showpercentage' => 0,
     'showcontributiontocoursetotal' => 0,
     'showfeedback' => 0,
