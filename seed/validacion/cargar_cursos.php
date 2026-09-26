@@ -83,15 +83,27 @@ function crear_pagina(object $curso, int $seccion, array $p): string {
     return 'creada';
 }
 
-/** Enlace (mod_url): el video se embebe; el recurso externo se abre aparte. */
+/** Enlace (mod_url): el video se embebe; el recurso externo se abre aparte.
+ *
+ * Ojo con `display`: mod_url solo admite lo que liste el ajuste del sitio
+ * `url_displayoptions`, que de fábrica es 0,1,5,6 —automático, incrustado,
+ * abrir, ventana emergente—. RESOURCELIB_DISPLAY_NEW (3) **no está**, y Moodle
+ * no protesta: cae al modo automático y abre el enlace encima del curso. Con
+ * GeoGebra, que no tiene botón de volver, el estudiante queda atrapado.
+ * Por eso el recurso externo va con POPUP y su tamaño. (26-sep-2026)
+ */
 function crear_enlace(object $curso, int $seccion, array $e, int $display): string {
     if (modulo_existente($curso->id, 'url', $e['nombre'])) {
         return 'ya existía';
     }
-    create_module(base_modulo($curso, $seccion, 'url', $e['nombre'], [
-        'intro' => $e['intro'], 'externalurl' => $e['url'], 'display' => $display, 'printintro' => 1,
-        'introeditor' => ['text' => $e['intro'], 'format' => FORMAT_HTML, 'itemid' => 0],
-    ]));
+    $opciones = ['intro' => $e['intro'], 'externalurl' => $e['url'], 'display' => $display,
+                 'printintro' => 1,
+                 'introeditor' => ['text' => $e['intro'], 'format' => FORMAT_HTML, 'itemid' => 0]];
+    if ($display === RESOURCELIB_DISPLAY_POPUP) {
+        $opciones['popupwidth'] = 1200;
+        $opciones['popupheight'] = 800;
+    }
+    create_module(base_modulo($curso, $seccion, 'url', $e['nombre'], $opciones));
     return 'creado';
 }
 
@@ -486,7 +498,7 @@ foreach ($cursos as $c) {
             echo "    quiz «{$q['nombre']}»: $slots preguntas" . ($nuevas ? " (importadas ahora)" : "") . "\n";
         }
         if (!empty($t['recurso'])) {
-            echo "    recurso externo: " . crear_enlace($curso, $n, $t['recurso'], RESOURCELIB_DISPLAY_NEW) . "\n";
+            echo "    recurso externo: " . crear_enlace($curso, $n, $t['recurso'], RESOURCELIB_DISPLAY_POPUP) . "\n";
         }
         foreach ($t['paginas'] as $p) {
             presentar($curso, 'page', $p['nombre'], $p['descripcion'] ?? '', 'ver');
