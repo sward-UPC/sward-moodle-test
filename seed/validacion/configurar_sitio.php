@@ -51,6 +51,12 @@ $ajustes = [
     'defaulthomepage' => HOMEPAGE_MYCOURSES,
     'enabledashboard' => 0,
     'messaging' => 0,
+    // Al primer ingreso Moodle obliga a cambiar la contrasena que mando por
+    // correo, y con el valor por defecto (0) aceptaba **esa misma**: el
+    // participante creia haberla cambiado y seguia con la que viajo por correo.
+    // Con 1, Moodle recuerda la anterior y la rechaza. Encontrado el 26 de
+    // septiembre de 2026 probando la nube.
+    'passwordreuselimit' => 1,
 ];
 foreach ($ajustes as $nombre => $valor) {
     $antes = get_config('core', $nombre);
