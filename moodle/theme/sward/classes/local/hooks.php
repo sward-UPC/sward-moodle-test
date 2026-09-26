@@ -25,6 +25,105 @@ namespace theme_sward\local;
  */
 class hooks {
     /**
+     * Pliega los temas que el estudiante ya terminó.
+     *
+     * La página del curso los muestra todos abiertos, así que después de un par
+     * de temas hay que desplazarse por material ya visto para llegar al que toca.
+     * Aquí se pliegan los que tienen **todas** sus actividades con seguimiento
+     * completadas; el primero que quede a medias sigue abierto, que es donde el
+     * estudiante tiene que continuar.
+     *
+     * La finalización se calcula en el servidor, con `completion_info`, y no
+     * leyendo el HTML: lo único que se toca del maquetado es el identificador
+     * `coursecontentcollapseid{seccion}`, que es el que usa Moodle para plegar.
+     *
+     * Si el estudiante abre a mano un tema plegado, se respeta mientras dure la
+     * pestaña: sin eso, recargar volvería a cerrárselo en la cara.
+     *
+     * @param \core\hook\output\before_standard_head_html_generation $hook
+     */
+    public static function plegar_temas_terminados(
+        \core\hook\output\before_standard_head_html_generation $hook,
+    ): void {
+        global $COURSE, $PAGE, $USER;
+
+        if ($PAGE->pagetype !== 'course-view-topics' && $PAGE->pagetype !== 'course-view-weeks') {
+            return;
+        }
+        if (empty($COURSE->id) || (int) $COURSE->id === SITEID || empty($COURSE->enablecompletion)) {
+            return;
+        }
+        if (!isloggedin() || isguestuser()) {
+            return;
+        }
+
+        $completion = new \completion_info($COURSE);
+        if (!$completion->is_enabled()) {
+            return;
+        }
+
+        $modinfo = get_fast_modinfo($COURSE, $USER->id);
+        $terminadas = [];
+        foreach ($modinfo->get_section_info_all() as $seccion) {
+            if ($seccion->section == 0) {
+                continue;
+            }
+            $conSeguimiento = 0;
+            $completas = 0;
+            foreach ($modinfo->sections[$seccion->section] ?? [] as $cmid) {
+                $cm = $modinfo->cms[$cmid];
+                if (!$cm->uservisible || !$completion->is_enabled($cm)) {
+                    continue;
+                }
+                $conSeguimiento++;
+                $datos = $completion->get_data($cm, true, $USER->id, $modinfo);
+                if (in_array((int) $datos->completionstate,
+                             [COMPLETION_COMPLETE, COMPLETION_COMPLETE_PASS], true)) {
+                    $completas++;
+                }
+            }
+            // Un tema sin nada que completar no se pliega: no hay nada terminado.
+            if ($conSeguimiento > 0 && $conSeguimiento === $completas) {
+                $terminadas[] = (int) $seccion->id;
+            }
+        }
+
+        if (!$terminadas) {
+            return;
+        }
+
+        $ids = json_encode($terminadas);
+        $curso = (int) $COURSE->id;
+        $hook->add_html(<<<HTML
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var abiertos = [];
+    try {
+        abiertos = JSON.parse(sessionStorage.getItem('sward_temas_abiertos_{$curso}') || '[]');
+    } catch (e) { abiertos = []; }
+    {$ids}.forEach(function (id) {
+        if (abiertos.indexOf(id) !== -1) { return; }
+        var caja = document.getElementById('coursecontentcollapseid' + id);
+        if (!caja || !caja.classList.contains('show')) { return; }
+        caja.classList.remove('show');
+        var boton = document.querySelector('[href="#coursecontentcollapseid' + id + '"]');
+        if (boton) {
+            boton.setAttribute('aria-expanded', 'false');
+            boton.classList.add('collapsed');
+            boton.addEventListener('click', function () {
+                abiertos.push(id);
+                try {
+                    sessionStorage.setItem('sward_temas_abiertos_{$curso}', JSON.stringify(abiertos));
+                } catch (e) { /* sin sessionStorage se pliega en cada carga, y ya */ }
+            }, { once: true });
+        }
+    });
+});
+</script>
+HTML);
+    }
+
+    /**
      * Escribe el nombre del curso en la cabecera del índice lateral, que Moodle
      * deja vacía: dentro de una actividad no quedaba a la vista en qué curso se
      * está. La plantilla de esa cabecera no recibe datos, así que el nombre va

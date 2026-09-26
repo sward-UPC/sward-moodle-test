@@ -29,4 +29,8 @@ $callbacks = [
         'hook' => \core\hook\output\before_standard_head_html_generation::class,
         'callback' => [\theme_sward\local\hooks::class, 'nombre_del_curso_en_el_indice'],
     ],
+    [
+        'hook' => \core\hook\output\before_standard_head_html_generation::class,
+        'callback' => [\theme_sward\local\hooks::class, 'plegar_temas_terminados'],
+    ],
 ];
