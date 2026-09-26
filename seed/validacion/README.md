@@ -9,6 +9,10 @@ preguntas, de un solo intento y calificados sobre 20 (escala vigesimal).
 - `generar.py`: valida el banco y escribe `salida/cursos.json` (para Moodle) y
   `salida/revision_banco.html` (para que el profesor lo revise).
 - `cargar_cursos.php`: crea los cursos en Moodle a partir del JSON. Idempotente.
+- `correo_bienvenida.php`: el texto del correo que Moodle manda al crear una
+  cuenta. El de fábrica confundía la aplicación con el aula, pedía un nombre de
+  usuario que no hace falta y numeraba los enlaces al pie como [1] y [2].
+  **Correrlo después de cada despliegue nuevo**, como `cargar_cursos.php`.
 - `simular_fase1.php`: estudiantes ficticios que rinden los quizzes, para ensayar
   la sincronización y el reentrenamiento. **Borrarlos antes de la fase 1 real.**
 
