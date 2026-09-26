@@ -53,7 +53,7 @@ services:
       - MOODLE_PASSWORD=Sward2026Change
       - MOODLE_EMAIL=admin@sward.test
       # Español, como la nube: la interfaz en el mismo idioma que el contenido.
-      - MOODLE_SITENAME=SWARD
+      - MOODLE_SITENAME=SWARD — Aula virtual
       - MOODLE_LANGUAGE=es
       # --- URL externa (local): debe coincidir con el puerto publicado (8090) ---
       - SITE_URL=http://localhost:8090
