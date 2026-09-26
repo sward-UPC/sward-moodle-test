@@ -13,6 +13,11 @@ preguntas, de un solo intento y calificados sobre 20 (escala vigesimal).
   cuenta. El de fábrica confundía la aplicación con el aula, pedía un nombre de
   usuario que no hace falta y numeraba los enlaces al pie como [1] y [2].
   **Correrlo después de cada despliegue nuevo**, como `cargar_cursos.php`.
+- `numeros_peru.php`: pone el separador decimal en punto y el de miles en coma.
+  El paquete `es` es el de España y hace lo contrario, así que Moodle rechazaba
+  `15.5` en las preguntas numéricas pidiendo «sin separador de miles», que es
+  justo lo que el enunciado manda usar. **Correrlo después de cada despliegue
+  nuevo**, como `cargar_cursos.php`.
 - `simular_fase1.php`: estudiantes ficticios que rinden los quizzes, para ensayar
   la sincronización y el reentrenamiento. **Borrarlos antes de la fase 1 real.**
 
