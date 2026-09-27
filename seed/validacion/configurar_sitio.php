@@ -78,9 +78,19 @@ foreach ($avisos as $componente => $nombres) {
     }
 }
 
+// Nadie ve nada sin identificarse. Sin esto, la portada muestra el catálogo del
+// estudio -qué cursos hay y de qué van- a cualquiera con el enlace, y además el
+// participante que llega desde el correo aterriza en una lista de cursos, hace
+// clic y recién ahí le piden la contraseña. Corregido el 27-sep-2026.
+set_config('forcelogin', 1);
+echo "  portada: hay que identificarse para ver algo
+";
+
 // Qué hacer en la pantalla de ingreso (Moodle lo muestra bajo el formulario).
-set_config('auth_instructions', '<p>Entra con el correo con el que te inscribiste. Si es tu primer ingreso, '
-    . 'usa la contraseña que te llegó por correo: Moodle te pedirá cambiarla.</p>');
+// Decía que la contraseña llegaba por correo y que había que cambiarla: cierto
+// hasta el 27-sep-2026, cuando se pasó a una sola contraseña elegida en SWARD.
+set_config('auth_instructions', '<p>Entra con el mismo correo y la misma contraseña '
+    . 'que elegiste al inscribirte en SWARD. No hay ninguna otra clave.</p>');
 echo "  ingreso: instrucciones
 ";
 

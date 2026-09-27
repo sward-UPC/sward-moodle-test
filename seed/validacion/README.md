@@ -13,6 +13,9 @@ preguntas, de un solo intento y calificados sobre 20 (escala vigesimal).
   cuenta. El de fábrica confundía la aplicación con el aula, pedía un nombre de
   usuario que no hace falta y numeraba los enlaces al pie como [1] y [2].
   **Correrlo después de cada despliegue nuevo**, como `cargar_cursos.php`.
+- `acceso.php`: obliga a identificarse para ver cualquier cosa y corrige el texto
+  de la pantalla de ingreso. Sin lo primero, la portada enseña el catálogo del
+  estudio a cualquiera con el enlace. **Correrlo después de cada despliegue.**
 - `politica_contrasena.php`: deja la regla de contraseña igual a la de SWARD
   —8 caracteres, una mayúscula y un número—. La de fábrica pedía además
   minúscula y carácter especial, así que Moodle rechazaba la que SWARD acababa
