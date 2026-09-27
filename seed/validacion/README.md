@@ -25,6 +25,11 @@ preguntas, de un solo intento y calificados sobre 20 (escala vigesimal).
   `15.5` en las preguntas numéricas pidiendo «sin separador de miles», que es
   justo lo que el enunciado manda usar. **Correrlo después de cada despliegue
   nuevo**, como `cargar_cursos.php`.
+- `borrar_intentos_huerfanos.php`: borra los intentos de quiz de cuentas ya
+  eliminadas. Moodle no borra al usuario, lo anonimiza, y **conserva sus
+  intentos**: son justo lo que la sincronización lleva a SWARD y con lo que el
+  modelo aprende. Correrlo junto con la purga de trazabilidad, antes de que
+  entre el primer participante real.
 - `simular_fase1.php`: estudiantes ficticios que rinden los quizzes, para ensayar
   la sincronización y el reentrenamiento. **Borrarlos antes de la fase 1 real.**
 
