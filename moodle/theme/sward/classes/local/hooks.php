@@ -25,6 +25,41 @@ namespace theme_sward\local;
  */
 class hooks {
     /**
+     * Explica, arriba del formulario de acceso, con qué se entra.
+     *
+     * Moodle sólo ofrece un sitio para este texto —«instrucciones de la página de
+     * ingreso»— y lo pinta **debajo** del formulario, bajo un título que habla de
+     * registrarse aunque el registro propio esté apagado. Ahí el participante lo
+     * lee tarde o lo entiende al revés: cree que tiene que crear otra cuenta.
+     *
+     * Va justo bajo el encabezado, que es donde se mira primero.
+     *
+     * @param \core\hook\output\before_standard_head_html_generation $hook
+     */
+    public static function con_que_se_entra(
+        \core\hook\output\before_standard_head_html_generation $hook,
+    ): void {
+        global $PAGE;
+        if ($PAGE->pagetype !== 'login-index') {
+            return;
+        }
+        $texto = get_string('sward_con_que_se_entra', 'theme_sward');
+        $json = json_encode($texto, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        $hook->add_html(<<<HTML
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var titulo = document.querySelector('.loginform .login-heading');
+    if (!titulo || document.querySelector('.sward-con-que-se-entra')) { return; }
+    var p = document.createElement('p');
+    p.className = 'sward-con-que-se-entra text-muted mb-4';
+    p.textContent = {$json};
+    titulo.insertAdjacentElement('afterend', p);
+});
+</script>
+HTML);
+    }
+
+    /**
      * Pliega los temas que el estudiante ya terminó.
      *
      * La página del curso los muestra todos abiertos, así que después de un par

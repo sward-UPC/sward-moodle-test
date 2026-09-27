@@ -9,13 +9,15 @@ preguntas, de un solo intento y calificados sobre 20 (escala vigesimal).
 - `generar.py`: valida el banco y escribe `salida/cursos.json` (para Moodle) y
   `salida/revision_banco.html` (para que el profesor lo revise).
 - `cargar_cursos.php`: crea los cursos en Moodle a partir del JSON. Idempotente.
-- `correo_bienvenida.php`: el texto del correo que Moodle manda al crear una
-  cuenta. El de fábrica confundía la aplicación con el aula, pedía un nombre de
-  usuario que no hace falta y numeraba los enlaces al pie como [1] y [2].
+- `textos_aula.php`: los textos propios del aula —el correo de alta y el título
+  del recuadro de acceso—. Van juntos porque Moodle guarda todas las
+  personalizaciones de idioma en un mismo archivo: dos guiones se pisarían.
   **Correrlo después de cada despliegue nuevo**, como `cargar_cursos.php`.
-- `acceso.php`: obliga a identificarse para ver cualquier cosa y corrige el texto
-  de la pantalla de ingreso. Sin lo primero, la portada enseña el catálogo del
-  estudio a cualquiera con el enlace. **Correrlo después de cada despliegue.**
+- `acceso.php`: obliga a identificarse para ver cualquier cosa y manda la
+  recuperación de contraseña a SWARD. Sin lo primero, la portada enseña el
+  catálogo del estudio a cualquiera con el enlace; sin lo segundo, recuperarla
+  cambiaría sólo la del aula y volverían a ser dos distintas.
+  **Correrlo después de cada despliegue.**
 - `politica_contrasena.php`: deja la regla de contraseña igual a la de SWARD
   —8 caracteres, una mayúscula y un número—. La de fábrica pedía además
   minúscula y carácter especial, así que Moodle rechazaba la que SWARD acababa

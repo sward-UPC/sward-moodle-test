@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * Hooks del tema SWARD.
+ * Cadenas del tema SWARD en español, que es el idioma del sitio.
  *
  * @package    theme_sward
  * @copyright  2026 Proyecto SWARD (UPC)
@@ -24,17 +24,7 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$callbacks = [
-    [
-        'hook' => \core\hook\output\before_standard_head_html_generation::class,
-        'callback' => [\theme_sward\local\hooks::class, 'con_que_se_entra'],
-    ],
-    [
-        'hook' => \core\hook\output\before_standard_head_html_generation::class,
-        'callback' => [\theme_sward\local\hooks::class, 'nombre_del_curso_en_el_indice'],
-    ],
-    [
-        'hook' => \core\hook\output\before_standard_head_html_generation::class,
-        'callback' => [\theme_sward\local\hooks::class, 'plegar_temas_terminados'],
-    ],
-];
+$string['pluginname'] = 'SWARD';
+$string['choosereadme'] = 'SWARD: Boost con «Mis cursos» como única navegación y el color de la marca.';
+$string['privacy:metadata'] = 'El tema SWARD no guarda datos personales.';
+$string['sward_con_que_se_entra'] = 'Entra con el mismo correo y la misma contraseña que elegiste al inscribirte en SWARD. No hay ninguna otra clave.';

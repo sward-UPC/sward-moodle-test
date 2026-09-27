@@ -26,4 +26,5 @@ defined('MOODLE_INTERNAL') || die();
 
 $string['choosereadme'] = 'SWARD: Boost with only "My courses" in the primary navigation and the SWARD brand colour.';
 $string['pluginname'] = 'SWARD';
+$string['sward_con_que_se_entra'] = 'Log in with the same email and password you chose when you signed up in SWARD. There is no other password.';
 $string['privacy:metadata'] = 'The SWARD theme does not store any personal data.';
